@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+	<title></title>
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+	display: flex;
+	flex-flow: column;
+}
+.overlay {
+	position: relative;
+	cursor: crosshair;
+}
+.overlay>* {
+	position: absolute;
+	user-select: none;
+}
+</style>
+<script>
+qel = (query) => document.querySelector(query)
+gel = (id) => document.getElementById(id)
+svgel = (name) => document.createElementNS(svgns, name)
+
+function cel(name, parameters={}) {
+    var element = document.createElement(name)
+    for (var param in parameters) {
+        element[param] = parameters[param]
+    }
+    return element
+}
+
+function distance(a, b) {
+	return (a[0] - b[0])**2 + (a[1] - b[1])**2
+}
+
+const svgns = "http://www.w3.org/2000/svg";
+var segments = []
+var picked = null
+const ui = {}
+
+function pathFormat(a, b) {
+	return `M ${a[0]} ${a[1]} L ${b[0]} ${b[1]}`
+}
+
+mouseDown = (ev) => {
+	let index = event.target.dataset.index
+	const pos = [event.layerX, event.layerY]
+	if (index === undefined) {
+		index = segments.length
+		const pathData = pathFormat(pos, pos)
+		const group = svgel("g")
+		const below = svgel("path")
+		below.setAttribute("d", pathData)
+		group.appendChild(below)
+		const above = svgel("path")
+		above.setAttribute("d", pathData)
+		above.setAttribute("class", "above")
+		above.setAttribute("data-index", index)
+		group.appendChild(above)
+		ui.svg.appendChild(group)
+		segments.push([[...pos], [...pos], group])
+	}
+	if (index !== undefined) {
+		const [a, b, group] = segments[+index]
+		picked = [index, (distance(a, pos) > distance(b, pos)) ? 1 : 0, group]
+		group.classList.add("grabbing")
+	}
+}
+
+mouseUp = (ev) => {
+	const [i, j, group] = picked
+	group.classList.remove("grabbing")
+	picked = null
+}
+
+mouseMove = (ev) => {
+	if (picked) {
+		const [i, j, group] = picked
+		segments[i][j] = [ev.layerX, ev.layerY]
+		const pathData = pathFormat(...segments[i])
+		for (const path of group.querySelectorAll("path")) {
+			path.setAttribute("d", pathData)
+			//[path.pathSegList[j].x, path.pathSegList[j].y] = segments[i][j]
+		}
+	}
+}
+
+function changeImage() {
+	ui.img.src = ui.select.value
+}
+
+function imageLoad(ev) {
+	//ui.svg.width.baseVal.unitType = SVGLength.SVG_LENGTHTYPE_PX
+	ui.svg.width.baseVal.value = ui.img.clientWidth
+	//ui.svg.height.baseVal.unitType = SVGLength.SVG_LENGTHTYPE_PX
+	ui.svg.height.baseVal.value = ui.img.clientHeight	
+}
+
+const images = ["jedna.jpg", "dva.jpg", "tri.jpg", "ctyri.jpg"]
+window.onload = () => {
+	ui.svg = qel("svg")
+	ui.select = qel("select")
+	ui.img = qel("img")
+	for (const filename of images) {
+		ui.select.appendChild(cel("option", {textContent: filename, value: filename}))
+	}
+	ui.svg.onmousedown = mouseDown
+	ui.svg.onmouseup = mouseUp
+	ui.svg.onmousemove = mouseMove
+	ui.select.oninput = changeImage
+	ui.img.onload = imageLoad
+	changeImage()
+}
+</script>
+</head>
+<body>
+<label>Zobrazený soubor:
+<select>
+</select>
+</label>
+<div class=overlay>
+	<img src="jedna.jpg">
+	<svg width="30" height="30">
+		<style>
+			path {
+				stroke: rgba(200, 50, 0, 1);
+				stroke-width: 1;
+				stroke-linecap: round;
+			}
+			path.above {
+				stroke: rgba(255, 255, 255, 0);
+				stroke-width: 20;
+			}
+			g:not(.grabbing) {
+				cursor: grab;
+			}
+		</style>
+	</svg>
+</div>
+</body>
+</html>
