@@ -9,6 +9,7 @@ const images = ["jedna.jpg", "dva.jpg", "tri.jpg", "ctyri.jpg"]
 
 const classification = {}
 const ui = {}
+const keyMap = new Map()
 
 qel = (query) => document.querySelector(query)
 gel = (id) => document.getElementById(id)
@@ -29,6 +30,13 @@ function setRadio(radioList, value) {
 	} else {
 		radioList.value = value
 	}
+}
+
+function setValue(side, value) {
+	const filename = ui.select.value
+	const current = classification[filename]
+	current[side] = Number(value)
+	setRadio(ui.form.elements[side], value)
 }
 
 function changeImage() {
@@ -59,7 +67,10 @@ function radioChange(ev) {
 }
 
 function keyDown(ev) {
-	console.log(ev)
+	if (keyMap.has(ev.key)) {
+		ev.preventDefault()
+		keyMap.get(ev.key)()
+	}
 }
 
 function prevClick(ev) {
@@ -70,6 +81,24 @@ function prevClick(ev) {
 function nextClick(ev) {
 	ui.select.selectedIndex = Math.min(ui.select.length - 1, ui.select.selectedIndex + 1)
 	changeImage()
+}
+
+function setKeyMap() {
+	const keys = [
+		['q', setValue, "left", 0],
+		['w', setValue, "left", 1],
+		['e', setValue, "left", 2],
+		['r', setValue, "left", 3],
+		['a', setValue, "right", 0],
+		['s', setValue, "right", 1],
+		['d', setValue, "right", 2],
+		['f', setValue, "right", 3],
+		['ArrowLeft', prevClick],
+		['ArrowRight', nextClick],
+	]
+	for (const [key, fn, ...args] of keys) {
+		keyMap.set(key, fn.bind(null, ...args))
+	}
 }
 
 window.onload = () => {
@@ -85,11 +114,13 @@ window.onload = () => {
 	for (const radio of document.querySelectorAll("input")) {
 		radio.onchange = radioChange
 	}
+	setKeyMap()
 	document.onkeydown = keyDown
 	gel("prev").onclick = prevClick
 	gel("next").onclick = nextClick
 	changeImage()
 }
+
 </script>
 <style>
 body {
