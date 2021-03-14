@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+	<title></title>
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+
+const images = ["jedna.jpg", "dva.jpg", "tri.jpg", "ctyri.jpg"]
+
+const svgns = "http://www.w3.org/2000/svg"
+const drawings = {}
+var segments = []
+var picked = null
+var tool = "create"
+const ui = {}
+
+qel = (query) => document.querySelector(query)
+gel = (id) => document.getElementById(id)
+
+function svgel(name, parameters={}) {
+	var element = document.createElementNS(svgns, name)
+	for (const param in parameters) {
+		element.setAttribute(param, parameters[param])
+	}
+	return element
+}
+
+	function cel(name, parameters={}) {
+	var element = document.createElement(name)
+	for (const param in parameters) {
+		element[param] = parameters[param]
+	}
+	return element
+}
+
+function pathFormat(a, b) {
+	return `M ${a[0]} ${a[1]} L ${b[0]} ${b[1]}`
+}
+
+function distance(a, b) {
+	return (a[0] - b[0])**2 + (a[1] - b[1])**2
+}
+
+mouseDown = (ev) => {
+	const pos = [event.layerX, event.layerY]
+	if (tool == "create") {
+		let index = event.target.dataset.index
+		if (index === undefined) {
+			index = segments.length
+			const pathData = pathFormat(pos, pos)
+			const group = svgel("g")
+			group.appendChild(svgel("path", {d: pathData, "class": "outline"}))
+			group.appendChild(svgel("path", {d: pathData}))
+			group.appendChild(svgel("path", {d: pathData, "class": "above", "data-index": index}))
+			ui.svg.appendChild(group)
+			segments.push([[...pos], [...pos], group])
+		}
+		if (index !== undefined) {
+			const [a, b, group] = segments[+index]
+			picked = [index, (distance(a, pos) > distance(b, pos)) ? 1 : 0, group]
+			group.classList.add("grabbing")
+		}
+	} else if (tool == "delete") {
+		let index = event.target.dataset.index
+		if (index !== undefined) {
+			const [a, b, group] = segments.splice(+index, 1)[0]
+			ui.svg.removeChild(group)
+			for (let i=+index; i<segments.length; i++) {
+				const above = segments[i][2].querySelector("path.above")
+				above.setAttribute("data-index", i)
+			}
+			tool = "create"
+			ui.delete.classList.remove("active")
+		}
+	}
+}
+
+mouseUp = (ev) => {
+	if (picked) {
+		const [i, j, group] = picked
+		group.classList.remove("grabbing")
+		picked = null
+	}
+}
+
+mouseMove = (ev) => {
+	if (picked) {
+		const [i, j, group] = picked
+		segments[i][j] = [ev.layerX, ev.layerY]
+		const pathData = pathFormat(...segments[i])
+		for (const path of group.querySelectorAll("path")) {
+			path.setAttribute("d", pathData)
+		}
+	}
+}
+
+function changeImage() {
+	const filename = ui.select.value
+	ui.img.src = filename
+	if (drawings[filename] === undefined) {
+		drawings[filename] = []
+	}
+	for (const [i, j, group] of segments) {
+		ui.svg.removeChild(group)
+	}
+	segments = drawings[filename]
+	for (const [i, j, group] of segments) {
+		ui.svg.appendChild(group)
+	}
+}
+
+function imageLoad(ev) {
+	ui.svg.width.baseVal.value = ui.img.width
+	ui.svg.height.baseVal.value = ui.img.height	
+}
+
+function downloadClick(ev) {
+	const data = JSON.stringify(drawings).replace(/,{}/g, "")
+	ui.download.href = `data:application/json,${data}`
+	console.log(ui.download.href.length)
+}
+
+function prevClick(ev) {
+	ui.select.selectedIndex = Math.max(0, ui.select.selectedIndex - 1)
+	changeImage()
+}
+
+function nextClick(ev) {
+	ui.select.selectedIndex = Math.min(ui.select.length - 1, ui.select.selectedIndex + 1)
+	changeImage()
+}
+
+function deleteClick(ev) {
+	if (tool != "delete") {
+		ui.delete.classList.add("active")
+		tool = "delete"
+	} else {
+		ui.delete.classList.remove("active")
+		tool = "create"
+	}
+}
+
+window.onload = () => {
+	ui.svg = qel("svg")
+	ui.select = qel("select")
+	ui.img = qel("img")
+	ui.delete = gel("delete")
+	ui.download = gel("download")
+	for (const filename of images) {
+		ui.select.appendChild(cel("option", {textContent: filename, value: filename}))
+	}
+	ui.svg.onmousedown = mouseDown
+	ui.svg.onmouseup = mouseUp
+	ui.svg.onmousemove = mouseMove
+	ui.select.oninput = changeImage
+	ui.img.onload = imageLoad
+	ui.download.onclick = downloadClick
+	gel("prev").onclick = prevClick
+	gel("next").onclick = nextClick
+	ui.delete.onclick = deleteClick
+	changeImage()
+}
+</script>
+<style>
+body {
+	display: flex;
+	flex-flow: column;
+	align-items: center;
+}
+.overlay {
+	position: relative;
+	user-select: none;
+}
+.overlay svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	cursor: crosshair;
+}
+button.checkbox {
+	background-color: #eee;
+	border-radius: 0.3em;
+	border: 1px solid gray;
+	outline: 0;
+	padding: 0.3em 0.8em;
+}
+button#delete.active {
+	color: #ccc;
+	background-color: #c20;
+}
+</style>
+</head>
+<body>
+<label>Zobrazený soubor:
+<button id="prev">〈</button>
+<select>
+</select>
+<button id="next">〉</button>
+</label>
+<button id="delete" class="checkbox">Smazat čáru</button>
+<div class=overlay>
+	<img src="jedna.jpg">
+	<svg width="30" height="30">
+		<style>
+			path {
+				stroke: rgba(200, 50, 0, 1);
+				stroke-width: 1px;
+				stroke-linecap: round;
+			}
+			path.outline {
+				stroke: rgba(250, 200, 0, 0.5);
+				stroke-width: 2.5px;
+				stroke-linecap: round;
+			}
+			path.above {
+				stroke: rgba(255, 255, 255, 0);
+				stroke-width: 20px;
+			}
+			g:not(.grabbing) {
+				cursor: grab;
+			}
+		</style>
+	</svg>
+</div>
+<a id="download" download="kresba.json">
+<button>Uložit kresbu...</button>
+</a>
+</body>
+</html>
