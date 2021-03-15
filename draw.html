@@ -43,6 +43,11 @@ function distance(a, b) {
 	return (a[0] - b[0])**2 + (a[1] - b[1])**2
 }
 
+function borderSnap(x, y) {
+	// todo... snap to the image
+	return [x, y]
+}
+
 mouseDown = (ev) => {
 	const pos = [event.layerX, event.layerY]
 	if (tool == "create") {
@@ -59,7 +64,10 @@ mouseDown = (ev) => {
 		}
 		if (index !== undefined) {
 			const [a, b, group] = segments[+index]
-			picked = [index, (distance(a, pos) > distance(b, pos)) ? 1 : 0, group]
+			const [da, db] = [distance(a, pos), distance(b, pos)]
+			const limit = 20**2
+			const pointIndex = (da > limit && db > limit) ? -1 : (da > db) ? 1 : 0
+			picked = [index, pointIndex, group, pos]
 			group.classList.add("grabbing")
 		}
 	} else if (tool == "delete") {
@@ -77,14 +85,9 @@ mouseDown = (ev) => {
 	}
 }
 
-function borderSnap(x, y) {
-	// todo... snap to the image
-	return [x, y]
-}
-
 mouseUp = (ev) => {
 	if (picked) {
-		const [i, j, group] = picked
+		const [i, j, group, pos] = picked
 		group.classList.remove("grabbing")
 		picked = null
 	}
@@ -92,12 +95,22 @@ mouseUp = (ev) => {
 
 mouseMove = (ev) => {
 	if (picked) {
-		const [i, j, group] = picked
-		segments[i][j] = ev.ctrlKey ? borderSnap(ev.layerX, ev.layerY) : [ev.layerX, ev.layerY] 
+		const pos = ev.ctrlKey ? borderSnap(ev.layerX, ev.layerY) : [ev.layerX, ev.layerY]
+		const [i, j, group, prevPos] = picked
+		if (j == -1) {
+			for (let k=0; k<2; k++) {
+				for (let m=0; m<2; m++) {
+					segments[i][k][m] += pos[m] - prevPos[m]
+				}
+			}
+		} else {
+			segments[i][j] = pos
+		}
 		const pathData = pathFormat(...segments[i])
 		for (const path of group.querySelectorAll("path")) {
 			path.setAttribute("d", pathData)
 		}
+		picked[3] = pos
 	}
 }
 
@@ -258,7 +271,7 @@ button#delete.active {
 	</svg>
 </div>
 <a id="download" download="kresba.json">
-<button>Uložit kresbu...</button>
+<button>Uložit čáry...</button>
 </a>
 </body>
 </html>
