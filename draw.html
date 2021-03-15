@@ -77,6 +77,11 @@ mouseDown = (ev) => {
 	}
 }
 
+function borderSnap(x, y) {
+	// todo... snap to the image
+	return [x, y]
+}
+
 mouseUp = (ev) => {
 	if (picked) {
 		const [i, j, group] = picked
@@ -88,7 +93,7 @@ mouseUp = (ev) => {
 mouseMove = (ev) => {
 	if (picked) {
 		const [i, j, group] = picked
-		segments[i][j] = [ev.layerX, ev.layerY]
+		segments[i][j] = ev.ctrlKey ? borderSnap(ev.layerX, ev.layerY) : [ev.layerX, ev.layerY] 
 		const pathData = pathFormat(...segments[i])
 		for (const path of group.querySelectorAll("path")) {
 			path.setAttribute("d", pathData)
