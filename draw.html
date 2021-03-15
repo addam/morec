@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
 
-const images = ["jedna.jpg", "dva.jpg", "tri.jpg", "ctyri.jpg"]
+const images = ["00lc.webp", "00ld.webp", "00lf.webp", "00rc.webp", "00rd.webp", "00rf.webp",]
 
 const svgns = "http://www.w3.org/2000/svg"
 const drawings = {}
@@ -14,6 +14,7 @@ var segments = []
 var picked = null
 var tool = "create"
 const ui = {}
+const keyMap = new Map()
 
 qel = (query) => document.querySelector(query)
 gel = (id) => document.getElementById(id)
@@ -121,6 +122,13 @@ function downloadClick(ev) {
 	console.log(ui.download.href.length)
 }
 
+function keyDown(ev) {
+	if (keyMap.has(ev.key)) {
+		ev.preventDefault()
+		keyMap.get(ev.key)()
+	}
+}
+
 function prevClick(ev) {
 	ui.select.selectedIndex = Math.max(0, ui.select.selectedIndex - 1)
 	changeImage()
@@ -129,6 +137,16 @@ function prevClick(ev) {
 function nextClick(ev) {
 	ui.select.selectedIndex = Math.min(ui.select.length - 1, ui.select.selectedIndex + 1)
 	changeImage()
+}
+
+function setKeyMap() {
+	const keys = [
+		['ArrowLeft', prevClick],
+		['ArrowRight', nextClick],
+	]
+	for (const [key, fn, ...args] of keys) {
+		keyMap.set(key, fn.bind(null, ...args))
+	}
 }
 
 function deleteClick(ev) {
@@ -156,6 +174,8 @@ window.onload = () => {
 	ui.select.oninput = changeImage
 	ui.img.onload = imageLoad
 	ui.download.onclick = downloadClick
+	setKeyMap()
+	document.onkeydown = keyDown
 	gel("prev").onclick = prevClick
 	gel("next").onclick = nextClick
 	ui.delete.onclick = deleteClick
@@ -167,6 +187,13 @@ body {
 	display: flex;
 	flex-flow: column;
 	align-items: center;
+}
+.sticky {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: white;
+	padding: 0.2em 1em;
 }
 .overlay {
 	position: relative;
@@ -192,6 +219,7 @@ button#delete.active {
 </style>
 </head>
 <body>
+<div class=sticky>
 <label>Zobrazený soubor:
 <button id="prev">〈</button>
 <select>
@@ -199,6 +227,7 @@ button#delete.active {
 <button id="next">〉</button>
 </label>
 <button id="delete" class="checkbox">Smazat čáru</button>
+</div>
 <div class=overlay>
 	<img src="jedna.jpg">
 	<svg width="30" height="30">
