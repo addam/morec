@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+	<title></title>
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+
+const images = Array(56).fill().map((x,i)=>"lf ld lc rf rd rc".split(" ").map(y=>`${i+100}${y}`.substring(1))).flat()
+
+const svgns = "http://www.w3.org/2000/svg"
+const drawings = {}
+var segments = []
+var picked = null
+var tool = "create"
+const ui = {}
+const keyMap = new Map()
+
+qel = (query) => document.querySelector(query)
+gel = (id) => document.getElementById(id)
+
+function svgel(name, parameters={}) {
+	var element = document.createElementNS(svgns, name)
+	for (const param in parameters) {
+		element.setAttribute(param, parameters[param])
+	}
+	return element
+}
+
+	function cel(name, parameters={}) {
+	var element = document.createElement(name)
+	for (const param in parameters) {
+		element[param] = parameters[param]
+	}
+	return element
+}
+
+function pathFormat(a, b) {
+	return `M ${a[0]} ${a[1]} L ${b[0]} ${b[1]}`
+}
+
+function distance(a, b) {
+	return (a[0] - b[0])**2 + (a[1] - b[1])**2
+}
+
+function borderSnap(x, y) {
+	// todo... snap to the image
+	return [x, y]
+}
+
+mouseDown = (ev) => {
+	const pos = [event.layerX, event.layerY]
+	if (tool == "create") {
+		let index = event.target.dataset.index
+		if (index === undefined) {
+			index = segments.length
+			const pathData = pathFormat(pos, pos)
+			const group = svgel("g")
+			group.appendChild(svgel("path", {d: pathData, "class": "outline"}))
+			group.appendChild(svgel("path", {d: pathData}))
+			group.appendChild(svgel("path", {d: pathData, "class": "above", "data-index": index}))
+			ui.svg.appendChild(group)
+			segments.push([[...pos], [...pos], group])
+		}
+		if (index !== undefined) {
+			const [a, b, group] = segments[+index]
+			const [da, db] = [distance(a, pos), distance(b, pos)]
+			const limit = 20**2
+			const pointIndex = (da > limit && db > limit) ? -1 : (da > db) ? 1 : 0
+			picked = [index, pointIndex, group, pos]
+			group.classList.add("grabbing")
+		}
+	} else if (tool == "delete") {
+		let index = event.target.dataset.index
+		if (index !== undefined) {
+			const [a, b, group] = segments.splice(+index, 1)[0]
+			ui.svg.removeChild(group)
+			for (let i=+index; i<segments.length; i++) {
+				const above = segments[i][2].querySelector("path.above")
+				above.setAttribute("data-index", i)
+			}
+			tool = "create"
+			ui.delete.classList.remove("active")
+		}
+	}
+}
+
+mouseUp = (ev) => {
+	if (picked) {
+		const [i, j, group, pos] = picked
+		group.classList.remove("grabbing")
+		picked = null
+	}
+}
+
+mouseMove = (ev) => {
+	if (picked) {
+		const pos = ev.ctrlKey ? borderSnap(ev.layerX, ev.layerY) : [ev.layerX, ev.layerY]
+		const [i, j, group, prevPos] = picked
+		if (j == -1) {
+			for (let k=0; k<2; k++) {
+				for (let m=0; m<2; m++) {
+					segments[i][k][m] += pos[m] - prevPos[m]
+				}
+			}
+		} else {
+			segments[i][j] = pos
+		}
+		const pathData = pathFormat(...segments[i])
+		for (const path of group.querySelectorAll("path")) {
+			path.setAttribute("d", pathData)
+		}
+		picked[3] = pos
+	}
+}
+
+function changeImage() {
+	const filename = ui.select.value
+	ui.img.src = `kosti/${filename}.jpg`
+	ui.mask.src = `cernobile/${filename}.jpg`
+	if (drawings[filename] === undefined) {
+		drawings[filename] = []
+	}
+	for (const [i, j, group] of segments) {
+		ui.svg.removeChild(group)
+	}
+	segments = drawings[filename]
+	for (const [i, j, group] of segments) {
+		ui.svg.appendChild(group)
+	}
+}
+
+function imageLoad(ev) {
+	ui.svg.width.baseVal.value = ui.img.width
+	ui.svg.height.baseVal.value = ui.img.height	
+}
+
+function downloadClick(ev) {
+	const data = JSON.stringify(drawings).replace(/,{}/g, "")
+	ui.download.href = `data:application/json,${data}`
+	console.log(ui.download.href.length)
+}
+
+function paintClick(ev) {
+  const canvas = cel("canvas")
+  canvas.width = ui.img.clientWidth
+  canvas.height = ui.img.clientHeight
+	const ctx = canvas.getContext("2d")
+	ctx.drawImage(ui.mask, 0, 0)
+	ctx.strokeStyle = "gray"
+	for (const [a, b] of segments) {
+		ctx.moveTo(...a)
+		ctx.lineTo(...b)
+		ctx.stroke()
+	}
+	try {
+		const data = canvas.toDataURL("image/png")
+		ui.paint.download = `${ui.select.value}.png`
+		ui.paint.href = data
+	} catch (e) {
+		alert("Jestli jsi ve Firefoxu: otevři about:config a nastav privacy.file_unique_origin = false")
+	}
+}
+
+function keyDown(ev) {
+	if (keyMap.has(ev.key)) {
+		ev.preventDefault()
+		keyMap.get(ev.key)()
+	}
+}
+
+function prevClick(ev) {
+	ui.select.selectedIndex = Math.max(0, ui.select.selectedIndex - 1)
+	changeImage()
+}
+
+function nextClick(ev) {
+	ui.select.selectedIndex = Math.min(ui.select.length - 1, ui.select.selectedIndex + 1)
+	changeImage()
+}
+
+function setKeyMap() {
+	const keys = [
+		['ArrowLeft', prevClick],
+		['ArrowRight', nextClick],
+	]
+	for (const [key, fn, ...args] of keys) {
+		keyMap.set(key, fn.bind(null, ...args))
+	}
+}
+
+function deleteClick(ev) {
+	if (tool != "delete") {
+		ui.delete.classList.add("active")
+		tool = "delete"
+	} else {
+		ui.delete.classList.remove("active")
+		tool = "create"
+	}
+}
+
+window.onload = () => {
+	ui.svg = qel("svg")
+	ui.select = qel("select")
+	ui.img = qel("#photo")
+	ui.mask = qel("#mask")
+	ui.delete = gel("delete")
+	ui.download = gel("download")
+	ui.paint = gel("paint")
+	for (const filename of images) {
+		ui.select.appendChild(cel("option", {textContent: filename, value: filename}))
+	}
+	ui.svg.onmousedown = mouseDown
+	ui.svg.onmouseup = mouseUp
+	ui.svg.onmousemove = mouseMove
+	ui.select.oninput = changeImage
+	ui.img.onload = imageLoad
+	ui.download.onclick = downloadClick
+	ui.paint.onclick = paintClick
+	setKeyMap()
+	document.onkeydown = keyDown
+	gel("prev").onclick = prevClick
+	gel("next").onclick = nextClick
+	ui.delete.onclick = deleteClick
+	changeImage()
+}
+</script>
+<style>
+body {
+	display: flex;
+	flex-flow: column;
+	align-items: center;
+}
+.sticky {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: white;
+	padding: 0.2em 1em;
+}
+.overlay {
+	position: relative;
+	user-select: none;
+}
+#mask {
+	display: none;
+}
+.overlay svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	cursor: crosshair;
+}
+button.checkbox {
+	background-color: #eee;
+	border-radius: 0.3em;
+	border: 1px solid gray;
+	outline: 0;
+	padding: 0.3em 0.8em;
+}
+button#delete.active {
+	color: #ccc;
+	background-color: #c20;
+}
+</style>
+</head>
+<body>
+<div class=sticky>
+<label>Zobrazený soubor:
+<button id="prev">〈</button>
+<select>
+</select>
+<button id="next">〉</button>
+</label>
+<button id="delete" class="checkbox">Smazat čáru</button>
+</div>
+<div class=overlay>
+	<img id=photo>
+	<img id=mask>
+	<svg width="30" height="30">
+		<style>
+			path {
+				stroke: rgba(200, 50, 0, 1);
+				stroke-width: 1px;
+				stroke-linecap: round;
+			}
+			path.outline {
+				stroke: rgba(250, 200, 0, 0.5);
+				stroke-width: 2.5px;
+				stroke-linecap: round;
+			}
+			path.above {
+				stroke: rgba(255, 255, 255, 0);
+				stroke-width: 20px;
+			}
+			g:not(.grabbing) {
+				cursor: grab;
+			}
+		</style>
+	</svg>
+</div>
+<a id="download" download="kresba.json">
+<button>Uložit čáry...</button>
+</a>
+<a id="paint" download="kresba.png">
+<button>Uložit aktuální obrázek...</button>
+</a>
+</body>
+</html>
