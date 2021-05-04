@@ -5,12 +5,12 @@ They have all been developed for different projects over the course of a few mon
 The code needs much tidying before it can be called a software package.
 Anyway, a skilled developer can already make use of many of the tools.
 
-## /index.html
+## [hlasivky/index.html](hlasivky/)
 classification of a set of images.
-Left and right side can be independently marked by one of four predefined classes.
-The classification can be exported in JSON form (image -> [class_left, class_right]).
+Each of four attributes (two on each side) can be independently marked by one of four predefined classes.
+The classification can be exported in JSON form (image -> [left1, left2, right1, right2]).
 
-## kosti/index.html
+## [kosti/index.html](kosti/)
 line annotations over a set of images.
 A set of lines can be defined on each image.
 The lines can be exported in JSON form (image -> coordinates).
