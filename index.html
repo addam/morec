@@ -10,10 +10,12 @@ const images = ["jedna.jpg", "dva.jpg", "tri.jpg", "ctyri.jpg"]
 const classification = {}
 const ui = {}
 const keyMap = new Map()
+const attributes = ["left", "leftw", "right", "rightw"]
 
 qel = (query) => document.querySelector(query)
 gel = (id) => document.getElementById(id)
 
+// create element
 function cel(name, parameters={}) {
 	var element = document.createElement(name)
 	for (const param in parameters) {
@@ -22,6 +24,8 @@ function cel(name, parameters={}) {
 	return element
 }
 
+// set visible selection in the UI element
+// radioList: <input type=radio> with equal name
 function setRadio(radioList, value) {
 	if (value === undefined) {
 		for (const radio of radioList) {
@@ -32,13 +36,15 @@ function setRadio(radioList, value) {
 	}
 }
 
-function setValue(side, value) {
+// set the value in both model and view
+function setValue(attr, value) {
 	const filename = ui.select.value
 	const current = classification[filename]
-	current[side] = Number(value)
-	setRadio(ui.form.elements[side], value)
+	current[attr] = Number(value)
+	setRadio(ui.form.elements[attr], value)
 }
 
+// callback: image was changed, update view
 function changeImage() {
 	const filename = ui.select.value
 	ui.img.src = filename
@@ -46,23 +52,25 @@ function changeImage() {
 		classification[filename] = {}
 	}
 	const current = classification[filename]
-	setRadio(ui.form.elements.left, current.left)
-	setRadio(ui.form.elements.right, current.right)
+	for (const attr of attributes) {
+		setRadio(ui.form.elements[attr], current[attr])
+	}
 }
 
+// callback: download was requested
 function downloadClick(ev) {
 	const data = JSON.stringify(classification)
 	ui.download.href = `data:application/json,${data}`
 }
 
+// callback: any radio button was clicked
 function radioChange(ev) {
 	const filename = ui.select.value
 	const current = classification[filename]
-	if (ui.form.elements.left.value) {
-		current.left = Number(ui.form.elements.left.value)
-	}
-	if (ui.form.elements.right.value) {
-		current.right = Number(ui.form.elements.right.value)
+	for (attr of attributes) {
+		if (ui.form.elements[attr].value) {
+			current[attr] = Number(ui.form.elements[attr].value)
+		}
 	}
 }
 
@@ -145,21 +153,40 @@ body {
 </select>
 <button id="next">〉</button>
 </label>
+
 <form action="javascript:void(0);">
 <div class=hflex>
 	<div class=vflex>
-		<label><input type=radio name=left value=0>Hodně ostré (0)</label>
-		<label><input type=radio name=left value=1>Ostré (1)</label>
-		<label><input type=radio name=left value=2>Tupé  (2)</label>
-		<label><input type=radio name=left value=3>Hodně tupé (3)</label>
+		<label><input type=radio name=left value=0>Sharp (0)</label>
+		<label><input type=radio name=left value=1>Rather Sharp (1)</label>
+		<label><input type=radio name=left value=2>Rather Rounded (2)</label>
+		<label><input type=radio name=left value=3>Rounded (3)</label>
 	</div>
-	<img src="jedna.jpg">
+
 	<div class=vflex>
-		<label><input type=radio name=right value=0>Hodně ostré (0)</label>
-		<label><input type=radio name=right value=1>Ostré (1)</label>
-		<label><input type=radio name=right value=2>Tupé  (2)</label>
-		<label><input type=radio name=right value=3>Hodně tupé (3)</label>
+		<label><input type=radio name=leftw value=0>Vlna 0%-25% (0)</label>
+		<label><input type=radio name=leftw value=1>Vlna 25%-50% (1)</label>
+		<label><input type=radio name=leftw value=2>Vlna 50%-75% (2)</label>
+		<label><input type=radio name=leftw value=3>Vlna 75%-100% (3)</label>
 	</div>
+
+	<img src="jedna.jpg">
+
+	<div class=vflex>
+		<label><input type=radio name=right value=0>Sharp (0)</label>
+		<label><input type=radio name=right value=1>Rather Sharp (1)</label>
+		<label><input type=radio name=right value=2>Rather Rounded (2)</label>
+		<label><input type=radio name=right value=3>Rounded (3)</label>
+	</div>
+
+	<div class=vflex>
+		<label><input type=radio name=rightw value=0>Vlna 0%-25% (0)</label>
+		<label><input type=radio name=rightw value=1>Vlna 25%-50% (1)</label>
+		<label><input type=radio name=rightw value=2>Vlna 50%-75% (2)</label>
+		<label><input type=radio name=rightw value=3>Vlna 75%-100% (3)</label>
+	</div>
+
+
 </div>
 </form>
 <a id="download" download="hlasivky.json">
