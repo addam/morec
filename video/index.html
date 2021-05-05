@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+	<title>Klasifikace logopedických cviků</title>
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+const images = ["jedna.mp4", "dva.mp4", "tri.mp4", "ctyri.mp4"]
+const attributes = {
+	"jedna.mp4": "flow stab sync",
+	"dva.mp4": "stab speed",
+	"tri.mp4": "stab speed",
+	"ctyri.mp4": "stab flow",
+}
+const translation = {
+	"jedna.mp4": "Sdílení prostoru",
+	"dva.mp4": "Kroužení tyčkou",
+	"tri.mp4": "Lízaný klik",
+	"ctyri.mp4": "Butterfly kick",
+	"flow": "Plynulost",
+	"stab": "Držení rovnováhy",
+	"sync": "Dobré načasování",
+	"speed": "Rychlost",
+}
+
+const classification = {}
+const ui = {}
+const keyMap = new Map()
+
+qel = (query) => document.querySelector(query)
+gel = (id) => document.getElementById(id)
+
+// create element
+function cel(name, parameters={}) {
+	var element = document.createElement(name)
+	for (const param in parameters) {
+		element[param] = parameters[param]
+	}
+	return element
+}
+
+// create a checkbox element
+function createCheckbox(name, checked) {
+	const label = cel("label", {textContent: translation[name]})
+	label.prepend(cel("input", {type: "checkbox", onchange: inputChange, name, checked}))
+	return label
+}
+
+// callback: image was changed, update view
+function changeImage() {
+	const filename = ui.select.value;
+	if (ui.video.dataset.src === filename) {
+		return
+	}
+	ui.video.src = filename
+	ui.video.dataset.src = filename
+	if (classification[filename] === undefined) {
+		classification[filename] = {}
+	}
+	ui.attributes.innerHTML = ""
+	const current = classification[filename]
+	for (const attr of attributes[filename].split(" ")) {
+		const checkbox = createCheckbox(attr, current[attr])
+		ui.attributes.appendChild(checkbox)
+	}
+}
+
+// callback: download was requested
+function downloadClick(ev) {
+	const data = JSON.stringify(classification)
+	ui.download.href = `data:application/json,${data}`
+}
+
+// callback: any checkbox button was clicked
+function inputChange(ev) {
+	const filename = ui.select.value
+	const current = classification[filename]
+	for (input of ui.attributes.querySelectorAll("input")) {
+		current[input.name] = input.checked
+	}
+}
+
+function keyDown(ev) {
+	if (keyMap.has(ev.key)) {
+		ev.preventDefault()
+		keyMap.get(ev.key)()
+	}
+}
+
+function prevClick(ev) {
+	ui.select.selectedIndex = Math.max(0, ui.select.selectedIndex - 1)
+	changeImage()
+}
+
+function nextClick(ev) {
+	ui.select.selectedIndex = Math.min(ui.select.length - 1, ui.select.selectedIndex + 1)
+	changeImage()
+}
+
+function setKeyMap() {
+	const keys = [
+		['ArrowLeft', prevClick],
+		['ArrowRight', nextClick],
+	]
+	for (const [key, fn, ...args] of keys) {
+		keyMap.set(key, fn.bind(null, ...args))
+	}
+}
+
+window.onload = () => {
+	ui.select = qel("select")
+	ui.video = qel("video")
+	ui.download = gel("download")
+	ui.form = qel("form")
+	ui.attributes = qel(".vflex")
+	for (const desc of images) {
+		const [filename, ...attributes] = desc.split(" ")
+		ui.select.appendChild(cel("option", {textContent: translation[filename], value: filename}))
+	}
+	ui.select.oninput = changeImage
+	ui.download.onclick = downloadClick
+	setKeyMap()
+	document.onkeydown = keyDown
+	gel("prev").onclick = prevClick
+	gel("next").onclick = nextClick
+	changeImage()
+	ui.video.focus()
+}
+
+</script>
+<style>
+body {
+	display: flex;
+	flex-flow: column;
+	align-items: center;
+}
+.hflex {
+	display: flex;
+	flex-flow: row;
+	align-items: center;
+}
+.vflex>* {
+	display: block;
+}
+video {
+	margin: 1em 0;
+}
+</style>
+</head>
+<body>
+<h1>Klasifikace logopedických cviků</h1>
+<label>Zobrazený cvik:
+<button id="prev">〈</button>
+<select>
+</select>
+<button id="next">〉</button>
+</label>
+
+<form action="javascript:void(0);">
+<div class=vflex>
+	<label><input type=checkbox name=flow>Plynulost</label>
+</div>
+
+<video tabindex=0 controls loop></video>
+</form>
+<a id="download" download="logopedie.json">
+<button>Uložit všechny záznamy...</button>
+</a>
+<small>Ukázková videa jsou vystříhaná z prezentace skvělého kurzu <a href="https://playreal.cz/">Play Real</a>.</small>
+</body>
+</html>

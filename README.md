@@ -10,6 +10,11 @@ classification of a set of images.
 Each of four attributes (two on each side) can be independently marked by one of four predefined classes.
 The classification can be exported in JSON form (image -> [left1, left2, right1, right2]).
 
+## [video/index.html](video/)
+classification of a set of videos.
+Each video has a specific set of attributes that can be turned on/off.
+Results can be exported in JSON form (video -> {attribute: boolean, ...}
+
 ## [kosti/index.html](kosti/)
 line annotations over a set of images.
 A set of lines can be defined on each image.
