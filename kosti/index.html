@@ -116,8 +116,8 @@ mouseMove = (ev) => {
 
 function changeImage() {
 	const filename = ui.select.value
-	ui.img.src = `kosti/${filename}.jpg`
-	ui.mask.src = `cernobile/${filename}.jpg`
+	ui.img.src = `kosti/${filename}.webp`
+	ui.mask.src = `cernobile/${filename}.webp`
 	if (drawings[filename] === undefined) {
 		drawings[filename] = []
 	}
@@ -158,7 +158,7 @@ function paintClick(ev) {
 		ui.paint.download = `${ui.select.value}.png`
 		ui.paint.href = data
 	} catch (e) {
-		alert("Jestli jsi ve Firefoxu: otevři about:config a nastav privacy.file_unique_origin = false")
+		alert("Zabezpečení nedovoluje stáhnout soubor. Jestli jsi ve Firefoxu: otevři about:config a nastav privacy.file_unique_origin = false")
 	}
 }
 
