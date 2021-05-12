@@ -5,22 +5,39 @@
 	<meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-const images = ["jedna.mp4", "dva.mp4", "tri.mp4", "ctyri.mp4"]
+const images = ["jazyk_doleva_a_doprava.mp4", "jazyk_nahoru_a_dolu.mp4", "krivy_usmev.mp4", "nafukovani_obou_tvari.mp4", "nafukovani_tvari.mp4", "obraceny_usmev.mp4", "ocko.mp4", "pusinka.mp4", "usmev.mp4", "usmev_zuby_od_sebe.mp4", "usmev_zuby_u_sebe.mp4"].flatMap(name => [1, 2, 3].map(i => `${i}_${name}`))
 const attributes = {
-	"jedna.mp4": "flow stab sync",
-	"dva.mp4": "stab speed",
-	"tri.mp4": "stab speed",
-	"ctyri.mp4": "stab flow",
+	"jazyk_doleva_a_doprava.mp4": "tongue_left tongue_right",
+	"jazyk_nahoru_a_dolu.mp4": "tongue_up tongue_down",
+	"krivy_usmev.mp4": "head symm",
+	"nafukovani_obou_tvari.mp4": "head symm",
+	"nafukovani_tvari.mp4": "head symm",
+	"obraceny_usmev.mp4": "head symm",
+	"ocko.mp4": "head symm closed",
+	"pusinka.mp4": "head symm lips",
 }
 const translation = {
-	"jedna.mp4": "Sdílení prostoru",
-	"dva.mp4": "Kroužení tyčkou",
-	"tri.mp4": "Lízaný klik",
-	"ctyri.mp4": "Butterfly kick",
-	"flow": "Plynulost",
-	"stab": "Držení rovnováhy",
-	"sync": "Dobré načasování",
-	"speed": "Rychlost",
+	"jazyk_doleva_a_doprava.mp4": "Jazyk doleva a doprava",
+	"jazyk_nahoru_a_dolu.mp4": "Jazyk nahoru a dolů",
+	"krivy_usmev.mp4": "Křivý úsměv",
+	"nafukovani_obou_tvari.mp4": "Nafukování obou tváří",
+	"nafukovani_tvari.mp4": "Nafukování tváří",
+	"obraceny_usmev.mp4": "Koutky dolů",
+	"ocko.mp4": "Óčko",
+	"pusinka.mp4": "Pusinka",
+	"corner": "Výška koutků",
+	"open": "Otevřenost",
+	"width": "Šířka",
+	"teeth": "Zuby u/od sebe",
+	"square": "Tvar O",
+	"tongue_up": "Jazyk nahoře",
+	"tongue_down": "Jazyk dole",
+	"tongue_left": "Jazyk doleva",
+	"tongue_right": "Jazyk doprava",
+	"symm": "Symetrie",
+	"head": "Není pohyb hlavou",
+	"lips": "Rty jsou v kontaktu",
+	"closed": "Zuby na sobě v lehkém kontaktu",
 }
 
 const classification = {}
@@ -41,9 +58,14 @@ function cel(name, parameters={}) {
 
 // create a checkbox element
 function createCheckbox(name, checked) {
-	const label = cel("label", {textContent: translation[name]})
-	label.prepend(cel("input", {type: "checkbox", onchange: inputChange, name, checked}))
-	return label
+	const tr = cel("tr")
+	for (const i of [0, 1, 2]) {
+		const td = cel("td")
+		td.append(cel("input", {type: "checkbox", onchange: inputChange, name: `${name}_${i}`, checked: checked[i]}))
+		tr.append(td)
+	}
+	tr.append(cel("td", {textContent: translation[name]}))
+	return tr
 }
 
 // callback: image was changed, update view
@@ -54,13 +76,15 @@ function changeImage() {
 	}
 	ui.video.src = filename
 	ui.video.dataset.src = filename
+	const videoname = filename.substring(2)
 	if (classification[filename] === undefined) {
 		classification[filename] = {}
 	}
 	ui.attributes.innerHTML = ""
 	const current = classification[filename]
-	for (const attr of attributes[filename].split(" ")) {
-		const checkbox = createCheckbox(attr, current[attr])
+	for (const attr of attributes[videoname].split(" ")) {
+		const checked = [1, 2, 3].map(i => current[`${attr}_${i}`])
+		const checkbox = createCheckbox(attr, checked)
 		ui.attributes.appendChild(checkbox)
 	}
 }
@@ -112,10 +136,12 @@ window.onload = () => {
 	ui.video = qel("video")
 	ui.download = gel("download")
 	ui.form = qel("form")
-	ui.attributes = qel(".vflex")
+	ui.attributes = qel("table")
 	for (const desc of images) {
 		const [filename, ...attributes] = desc.split(" ")
-		ui.select.appendChild(cel("option", {textContent: translation[filename], value: filename}))
+		const num = filename.substring(0, 1)
+		const videoname = filename.substring(2)
+		ui.select.appendChild(cel("option", {textContent: `${num} - ${translation[videoname]}`, value: filename}))
 	}
 	ui.select.oninput = changeImage
 	ui.download.onclick = downloadClick
@@ -157,15 +183,14 @@ video {
 </label>
 
 <form action="javascript:void(0);">
-<div class=vflex>
-	<label><input type=checkbox name=flow>Plynulost</label>
-</div>
+<div class=hflex>
+	<video tabindex=0 controls loop></video>
 
-<video tabindex=0 controls loop></video>
-</form>
+	<table></table>
+	</form>
+</div>
 <a id="download" download="logopedie.json">
 <button>Uložit všechny záznamy...</button>
 </a>
-<small>Ukázková videa jsou vystříhaná z prezentace skvělého kurzu <a href="https://playreal.cz/">Play Real</a>.</small>
 </body>
 </html>
