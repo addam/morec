@@ -5,39 +5,43 @@
 	<meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-const images = ["jazyk_doleva_a_doprava.mp4", "jazyk_nahoru_a_dolu.mp4", "krivy_usmev.mp4", "nafukovani_obou_tvari.mp4", "nafukovani_tvari.mp4", "obraceny_usmev.mp4", "ocko.mp4", "pusinka.mp4", "usmev.mp4", "usmev_zuby_od_sebe.mp4", "usmev_zuby_u_sebe.mp4"].flatMap(name => [1, 2, 3].map(i => `${i}_${name}`))
-const attributes = {
-	"jazyk_doleva_a_doprava.mp4": "tongue_left tongue_right",
-	"jazyk_nahoru_a_dolu.mp4": "tongue_up tongue_down",
-	"krivy_usmev.mp4": "head symm",
-	"nafukovani_obou_tvari.mp4": "head symm",
-	"nafukovani_tvari.mp4": "head symm",
-	"obraceny_usmev.mp4": "head symm",
-	"ocko.mp4": "head symm closed",
-	"pusinka.mp4": "head symm lips",
+const subjects = [1, 2, 3]
+const videos = {
+	"jazyk_doleva_a_doprava.mp4": ["Střídání pohybu jazyka vpravo a vlevo", "tongue_left tongue_right head neck jaw tongue_shape lips_move", "Špičku jazyka střídavě vysouváme vpravo a vlevo směrem k uším. Ústa jsou otevřená, nepohybujeme dolní čelistí do stran"],
+	"jazyk_nahoru_a_dolu.mp4": ["Střídání pohybu jazyka nahoru a dolů", "tongue_up tongue_down symm head neck jaw tongue_shape lips_move", "Špičku jazyka střídavě vysouváme nahoru a dolů. Jazyk držíme po krátkou dobu v napětí v obou pozicích. Ústa jsou otevřená, nepomáháme si dolní čelistí."],
+	"krivy_usmev.mp4": ["Zvedání levého a pravého koutku", "corner symm head neck", "Zvedáme střídavě levý a pravý koutek nahoru do strany. Nepohybujeme čelistí."],
+	"nafukovani_obou_tvari.mp4": ["Nafukování tváří", "brightness symm head lips_open", "Nafoukneme obě tváře a zadržíme v nich vzduch. Rty jsou pevně sevřené, vzduch nesmí unikat nosem ani ústy. Vzduch poté vydechneme."],
+	"nafukovani_tvari.mp4": ["Střídavé nafukování tváří", "brightness head lips_open", "Nafoukneme obě tváře a zadržíme v nich vzduch. Rty jsou pevně sevřené. Vzduch poté pomalu přeléváme z jedné tváře do druhé. Vzduch nesmí unikat nosem ani ústy. Vzduch poté vydechneme."],
+	"obraceny_usmev.mp4": ["Koutky dolů", "corner open symm head neck", "Stáhneme pravý i levý koutek současně směrem dolů, snažíme se usmát „obráceně“."],
+	"ocko.mp4": ["Našpulení rtů se zuby (óčko ze rtů)", "square open teeth symm head teeth_open tongue_still", "Sevřeme a našpulíme rty směrem dopředu, rty jsou kulatě otevřené. Lehce skousnuté zuby jsou viditelné."],
+	"pusinka.mp4": ["Našpulení rtů (pusinka)", "square open symm head lips_open", "Sevřeme a našpulíme rty směrem dopředu."],
+	"usmev.mp4": ["Úsměv", "corner open width symm head", "Zavřeme ústa a roztáhneme rty do úsměvu. Snažíme se rozšířit úsměv co nejvíce do stran."],
+	"usmev_zuby_od_sebe.mp4": ["Úsměv se zuby od sebe", "corner open width teeth symm head", "Doširoka se usmějeme. Otevřeme ústa a ukážeme horní i spodní zuby. Zuby nejsou skousnuté, snažíme se rozšířit úsměv co nejvíce do stran a uvolníme krk."],
+	"usmev_zuby_u_sebe.mp4": ["Úsměv se zuby u sebe", "corner open width teeth symm head", "Usmějeme se tak, aby šly vidět horní i spodní zuby. Snažíme se rozšířit úsměv co nejvíce do stran, zuby držíme u sebe."],
+	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. Poté se vaše záznamy uloží jako soubor „logopedie.json“. Tento soubor nám prosím pošlete e-mailem."],
 }
+const columns = [0, 1, 2]
 const translation = {
-	"jazyk_doleva_a_doprava.mp4": "Jazyk doleva a doprava",
-	"jazyk_nahoru_a_dolu.mp4": "Jazyk nahoru a dolů",
-	"krivy_usmev.mp4": "Křivý úsměv",
-	"nafukovani_obou_tvari.mp4": "Nafukování obou tváří",
-	"nafukovani_tvari.mp4": "Nafukování tváří",
-	"obraceny_usmev.mp4": "Koutky dolů",
-	"ocko.mp4": "Óčko",
-	"pusinka.mp4": "Pusinka",
-	"corner": "Výška koutků",
-	"open": "Otevřenost",
-	"width": "Šířka",
-	"teeth": "Zuby u/od sebe",
-	"square": "Tvar O",
-	"tongue_up": "Jazyk nahoře",
-	"tongue_down": "Jazyk dole",
-	"tongue_left": "Jazyk doleva",
-	"tongue_right": "Jazyk doprava",
-	"symm": "Symetrie",
-	"head": "Není pohyb hlavou",
-	"lips": "Rty jsou v kontaktu",
-	"closed": "Zuby na sobě v lehkém kontaktu",
+	"okay": "Správně",
+	"corner": "Koutek úst nejde dost vysoko",
+	"open": "Ústa jsou málo otevřená",
+	"width": "Úsměv je málo široký",
+	"teeth": "Zuby nejsou vidět",
+	"square": "Rty netvoří kruh",
+	"tongue_up": "Jazyk jde málo nahoru",
+	"tongue_down": "Jazyk jde málo dolů",
+	"tongue_left": "Jazyk jde málo doleva (z pohledu kamery)",
+	"tongue_right": "Jazyk jde málo doprava (z pohledu kamery)",
+	"brightness": "Není vidět změna jasu ve tváři",
+	"symm": "Nesymetrické",
+	"head": "Hýbe se hlava",
+	"neck": "Zapojují se krční svaly",
+	"lips_open": "Rty nejsou v kontaktu",
+	"jaw": "Zapojuje se čelist",
+	"tongue_shape": "Jazyk není v protažení",
+	"lips_move": "Zapojují se rty",
+	"teeth_open": "Zuby nejsou v lehkém kontaktu",
+	"tongue_still": "Není správná klidová poloha jazyka",
 }
 
 const classification = {}
@@ -56,43 +60,69 @@ function cel(name, parameters={}) {
 	return element
 }
 
-// create a checkbox element
-function createCheckbox(name, checked) {
-	const tr = cel("tr")
-	for (const i of [0, 1, 2]) {
-		const td = cel("td")
-		td.append(cel("input", {type: "checkbox", onchange: inputChange, name: `${name}_${i}`, checked: checked[i]}))
-		tr.append(td)
-	}
-	tr.append(cel("td", {textContent: translation[name]}))
-	return tr
+// shuffle an array in-place and also return it
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]
+    }
+    return array
+}
+
+function splitAttributes(attributes) {
+	return ("okay " + attributes).split(" ")
 }
 
 // callback: image was changed, update view
 function changeImage() {
 	const filename = ui.select.value;
+	ui.progressbar.style.width = `${Math.round(100 * (ui.select.selectedIndex + 1) / ui.select.options.length)}%`
 	if (ui.video.dataset.src === filename) {
 		return
+	} else if (filename === "epilogue") {
+		const [title, _, description] = videos[filename]
+		ui.title.textContent = title
+		ui.description.textContent = description
+		ui.content.classList.add("hidden")
+		ui.epilogue.classList.remove("hidden")
+		ui.video.dataset.src = ""
+		return
 	}
+	ui.content.classList.remove("hidden")
+	ui.epilogue.classList.add("hidden")
 	ui.video.src = filename
 	ui.video.dataset.src = filename
 	const videoname = filename.substring(2)
+	const [title, attributes, description] = videos[videoname]
+	ui.title.textContent = title
+	ui.description.textContent = description
 	if (classification[filename] === undefined) {
 		classification[filename] = {}
 	}
 	ui.attributes.innerHTML = ""
 	const current = classification[filename]
-	for (const attr of attributes[videoname].split(" ")) {
-		const checked = [1, 2, 3].map(i => current[`${attr}_${i}`])
-		const checkbox = createCheckbox(attr, checked)
-		ui.attributes.appendChild(checkbox)
+	for (const attr of splitAttributes(attributes)) {
+		const tr = cel("tr")
+		for (const i of columns) {
+			const td = cel("td")
+			const name = `${attr}_${i}`
+			td.append(cel("input", {type: "checkbox", onchange: inputChange, name, checked: current[name]}))
+			tr.append(td)
+		}
+		tr.append(cel("td", {textContent: translation[attr], onclick: checkTr, classList: ["clickable"]}))
+		ui.attributes.appendChild(tr)
+		ui.comment.value = current[ui.comment.name] || ""
 	}
 }
 
 // callback: download was requested
 function downloadClick(ev) {
-	const data = JSON.stringify(classification)
-	ui.download.href = `data:application/json,${data}`
+	if (checkComplete()) {
+		const data = JSON.stringify(classification)
+		ui.download.href = `data:application/json,${data}`
+	} else {
+		changeImage()
+	}
 }
 
 // callback: any checkbox button was clicked
@@ -102,6 +132,18 @@ function inputChange(ev) {
 	for (input of ui.attributes.querySelectorAll("input")) {
 		current[input.name] = input.checked
 	}
+	current[ui.comment.name] = ui.comment.value
+}
+
+// callback: check all boxes in a <tr>
+function checkTr(ev) {
+	const tr = ev.target.parentElement
+	const inputs = Array.from(tr.querySelectorAll("input"))
+	const value = !inputs.every(it => it.checked)
+	for (const input of inputs) {
+		input.checked = value
+	}
+	inputChange()
 }
 
 function keyDown(ev) {
@@ -121,6 +163,27 @@ function nextClick(ev) {
 	changeImage()
 }
 
+// check that each video has some user input in each column
+function checkComplete() {
+	for (const option of ui.select.querySelectorAll("option")) {
+		const filename = option.value
+		if (filename === "epilogue") {
+			continue
+		}
+		const current = classification[filename] || {}
+		const videoname = filename.substring(2)
+		const everyColumnChecked = columns
+			.every(i => splitAttributes(videos[videoname][1])
+				.some(key => current[`${key}_${i}`]))
+		const hasComment = (current["comment"] && current["comment"].trim() != "")
+		if (!everyColumnChecked && !hasComment) {
+			ui.select.value = filename
+			return false
+		}
+	}
+	return true
+}
+
 function setKeyMap() {
 	const keys = [
 		['ArrowLeft', prevClick],
@@ -132,17 +195,28 @@ function setKeyMap() {
 }
 
 window.onload = () => {
+	ui.content = gel("content")
+	ui.epilogue = gel("epilogue")
 	ui.select = qel("select")
 	ui.video = qel("video")
 	ui.download = gel("download")
 	ui.form = qel("form")
 	ui.attributes = qel("table")
-	for (const desc of images) {
-		const [filename, ...attributes] = desc.split(" ")
-		const num = filename.substring(0, 1)
-		const videoname = filename.substring(2)
-		ui.select.appendChild(cel("option", {textContent: `${num} - ${translation[videoname]}`, value: filename}))
+	ui.title = qel("h1")
+	ui.description = qel("p")
+	ui.comment = qel("textarea")
+	ui.progressbar = qel(".progressbar")
+	for (const videoname of shuffle(Object.keys(videos))) {
+		if (videoname == "epilogue") {
+			continue
+		}
+		for (const i of shuffle([...subjects])) {
+			const filename = `${i}_${videoname}`
+			ui.select.append(cel("option", {textContent: `${videos[videoname][0]} - ${i}`, value: filename}))
+		}
 	}
+	ui.select.append(cel("option", {textContent: videos["epilogue"][0], value: "epilogue"}))
+
 	ui.select.oninput = changeImage
 	ui.download.onclick = downloadClick
 	setKeyMap()
@@ -159,38 +233,67 @@ body {
 	display: flex;
 	flex-flow: column;
 	align-items: center;
+	max-width: 1200px;
+	margin: auto;
+}
+body>* {
+	margin: 0.5em 0;
 }
 .hflex {
 	display: flex;
-	flex-flow: row;
-	align-items: center;
+	flex-flow: row wrap;
+	justify-content: center;
+	width: 100%
+}
+.vflex {
+	max-width: 100vw;
 }
 .vflex>* {
 	display: block;
 }
 video {
-	margin: 1em 0;
+	margin: 1em;
+	max-width: 100vw;
+}
+.clickable {
+	cursor: pointer
+}
+.hidden {
+	display: none
+}
+.progress-box {
+	width: 100%;
+	height: 1em;
+	border: 1px solid gray;
+}
+.progressbar {
+	width: attr(data-progress %);
+	height: 100%;
+	background-color: gray;
 }
 </style>
 </head>
 <body>
-<h1>Klasifikace logopedických cviků</h1>
-<label>Zobrazený cvik:
-<button id="prev">〈</button>
-<select>
-</select>
-<button id="next">〉</button>
-</label>
+<h1>Jazyk doleva a doprava</h1>
+<p>Špičku jazyku střídavě vysouváme vpravo a vlevo směrem k uším. Ústa jsou otevřená, nepohybujeme dolní čelistí do stran.</p>
+<div class=hflex id=content>
+	<video tabindex=0 controls></video>
 
-<form action="javascript:void(0);">
-<div class=hflex>
-	<video tabindex=0 controls loop></video>
-
-	<table></table>
-	</form>
+	<div class=vflex>
+		<button id="prev">〈 Předchozí video</button>
+		<table></table>
+		<label class=vflex>Slovní komentář:
+		<textarea name="comment" cols=30 rows=3 oninput="inputChange(event)"></textarea>
+		</label>
+		<button id="next">Další video 〉</button>
+	</div>
 </div>
-<a id="download" download="logopedie.json">
-<button>Uložit všechny záznamy...</button>
-</a>
+<div class=hflex id=epilogue>
+	<a id="download" download="logopedie.json">
+		<button>Uložit všechny záznamy...</button>
+	</a>
+</div>
+<select></select>
+<div class=progress-box><div class=progressbar></div></div>
 </body>
 </html>
