@@ -22,7 +22,7 @@ const videos = {
 }
 const columns = [0, 1, 2]
 const translation = {
-	"okay": "Správně",
+	"okay": "Uznatelné",
 	"corner": "Koutek úst nejde dost vysoko",
 	"open": "Ústa jsou málo otevřená",
 	"width": "Úsměv je málo široký",
@@ -201,7 +201,7 @@ window.onload = () => {
 	ui.video = qel("video")
 	ui.download = gel("download")
 	ui.form = qel("form")
-	ui.attributes = qel("table")
+	ui.attributes = qel("tbody")
 	ui.title = qel("h1")
 	ui.description = qel("p")
 	ui.comment = qel("textarea")
@@ -247,13 +247,23 @@ body>* {
 }
 .vflex {
 	max-width: 100vw;
-}
-.vflex>* {
-	display: block;
+	display: flex;
+	flex-flow: column;
+	justify-content: space-between;
 }
 video {
-	margin: 1em;
+	margin: 0 1em;
 	max-width: 100vw;
+}
+table {
+	border-collapse: collapse;
+	width: 100%;
+}
+th:only-child {
+	text-align: left;
+}
+tr:nth-child(1) td {
+    border-bottom: 1px solid gray;
 }
 .clickable {
 	cursor: pointer
@@ -262,7 +272,7 @@ video {
 	display: none
 }
 .progress-box {
-	width: 100%;
+	width: calc(100% - 2em);
 	height: 1em;
 	border: 1px solid gray;
 }
@@ -280,12 +290,17 @@ video {
 	<video tabindex=0 controls></video>
 
 	<div class=vflex>
-		<button id="prev">〈 Předchozí video</button>
-		<table></table>
+		<button id="prev" class=top>〈 Předchozí video</button>
+		<div>
+		<table><thead>
+			<tr><th colspan=4>Realizace cviku</th></tr>
+			<tr><th>1.</th><th>2.</th><th>3.</th><th></th></tr>
+		</thead><tbody></tbody></table>
 		<label class=vflex>Slovní komentář:
 		<textarea name="comment" cols=30 rows=3 oninput="inputChange(event)"></textarea>
 		</label>
-		<button id="next">Další video 〉</button>
+		</div>
+		<button id="next" class=bottom>Další video 〉</button>
 	</div>
 </div>
 <div class=hflex id=epilogue>
