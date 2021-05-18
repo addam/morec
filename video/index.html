@@ -18,7 +18,7 @@ const videos = {
 	"usmev.mp4": ["Úsměv", "corner -open width symm head", "Zavřeme ústa a roztáhneme rty do úsměvu. Snažíme se rozšířit úsměv co nejvíce do stran."],
 	"usmev_zuby_od_sebe.mp4": ["Úsměv se zuby od sebe", "corner open width teeth symm head", "Doširoka se usmějeme. Otevřeme ústa a ukážeme horní i spodní zuby. Zuby nejsou skousnuté, snažíme se rozšířit úsměv co nejvíce do stran a uvolníme krk."],
 	"usmev_zuby_u_sebe.mp4": ["Úsměv se zuby u sebe", "corner open width -teeth symm head", "Usmějeme se tak, aby šly vidět horní i spodní zuby. Snažíme se rozšířit úsměv co nejvíce do stran, zuby držíme u sebe."],
-	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. Poté se vaše záznamy uloží jako soubor „logopedie.json“. Tento soubor nám prosím pošlete e-mailem."],
+	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. Poté se vaše záznamy automaticky odešlou, abychom je mohli zpracovat. Pokud chcete, můžete si záznam i stáhnout."],
 }
 const columns = [0, 1, 2]
 const translation = {
@@ -47,7 +47,6 @@ const translation = {
 	"-teeth": "Zuby nejsou v lehkém kontaktu",
 	"tongue_still": "Není správná klidová poloha jazyka",
 }
-
 const classification = {}
 const ui = {}
 const keyMap = new Map()
@@ -119,11 +118,35 @@ function changeImage() {
 	}
 }
 
-// callback: download was requested
-function downloadClick(ev) {
+// callback: validation was requested
+async function validationClick(ev) {
 	if (isComplete()) {
 		const data = JSON.stringify(classification)
-		ui.download.href = `data:application/json,${data}`
+		ui.download.href = `data:application/json,${encodeURI(data)}`
+		ui.download.classList.remove("hidden")
+		try {
+			var formData = new FormData();
+			formData.append("expires", "2021-12-31")
+			formData.append("maxDownloads", "100")
+			formData.append("autoDelete", "true")
+			const file = new File([data], "logopedie.json", {type : "application/json"})
+			formData.append("file", file)
+			const response = await fetch("https://file.io/", {
+			  method: "POST",
+			  headers: {
+					"Accept": "application/json",
+					"Authorization": "Basic SlJYMzNEQi5LNFY0VjRGLVIzQU1HS0YtSEM4QUtENy1TRzI5RVk2Og==",
+				},
+			  body: formData
+			});
+			if (response.status !== 200) {
+				throw response
+			}
+			window.alert("Díky, vaše hodnocení jsme dostali a bezpečně uložili.\nOkno prohlížeče můžete zavřít.")
+		} catch (e) {
+			window.alert("Ajaj, naše stránka udělala chybu!\nSoubor se nepodařilo automaticky uložit.\nProsím, stáhněte si zde vyplněný formulář a pošlete nám ho v příloze e-mailu.")
+			ui.download.click()
+		}
 	} else {
 		window.alert("Bohužel ještě není formulář zcela vyplněný. V každém sloupci by mělo být aspoň jedno políčko zaškrtnuté.")
 		changeImage()
@@ -204,6 +227,7 @@ window.onload = () => {
 	ui.epilogue = gel("epilogue")
 	ui.select = qel("select")
 	ui.video = qel("video")
+	ui.validation = gel("validation")
 	ui.download = gel("download")
 	ui.form = qel("form")
 	ui.attributes = qel("tbody")
@@ -223,7 +247,7 @@ window.onload = () => {
 	ui.select.append(cel("option", {textContent: videos["epilogue"][0], value: "epilogue"}))
 
 	ui.select.oninput = changeImage
-	ui.download.onclick = downloadClick
+	ui.validation.onclick = validationClick
 	setKeyMap()
 	document.onkeydown = keyDown
 	gel("prev").onclick = prevClick
@@ -311,10 +335,9 @@ tr:nth-child(1) td {
 		<button id="next" class=bottom>Další video 〉</button>
 	</div>
 </div>
-<div class=hflex id=epilogue>
-	<a id="download" download="logopedie.json">
-		<button>Uložit všechny záznamy...</button>
-	</a>
+<div class=vflex id=epilogue>
+	<button id=validation>Zkontrolovat formulář...</button>
+	<a id="download" download="logopedie.json" class=hidden>Váš vyplněný formulář ke stažení</a>
 </div>
 <select></select>
 <div class=progress-box><div class=progressbar></div></div>
