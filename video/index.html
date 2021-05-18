@@ -127,7 +127,7 @@ async function validationClick(ev) {
 		try {
 			var formData = new FormData();
 			formData.append("expires", "2021-12-31")
-			formData.append("maxDownloads", "100")
+			formData.append("maxDownloads", "1")
 			formData.append("autoDelete", "true")
 			const file = new File([data], "logopedie.json", {type : "application/json"})
 			formData.append("file", file)
