@@ -9,38 +9,42 @@ const subjects = [1, 2, 3]
 const videos = {
 	"jazyk_doleva_a_doprava.mp4": ["Střídání pohybu jazyka vpravo a vlevo", "tongue_left tongue_right head neck jaw tongue_shape lips_move", "Špičku jazyka střídavě vysouváme vpravo a vlevo směrem k uším. Ústa jsou otevřená, nepohybujeme dolní čelistí do stran"],
 	"jazyk_nahoru_a_dolu.mp4": ["Střídání pohybu jazyka nahoru a dolů", "tongue_up tongue_down symm head neck jaw tongue_shape lips_move", "Špičku jazyka střídavě vysouváme nahoru a dolů. Jazyk držíme po krátkou dobu v napětí v obou pozicích. Ústa jsou otevřená, nepomáháme si dolní čelistí."],
-	"krivy_usmev.mp4": ["Zvedání levého a pravého koutku", "corner symm head neck", "Zvedáme střídavě levý a pravý koutek nahoru do strany. Nepohybujeme čelistí."],
+	"krivy_usmev.mp4": ["Zvedání levého a pravého koutku", "corner corner_still two_symm head neck", "Zvedáme střídavě levý a pravý koutek nahoru do strany. Nepohybujeme čelistí."],
 	"nafukovani_obou_tvari.mp4": ["Nafukování tváří", "brightness symm head lips_open", "Nafoukneme obě tváře a zadržíme v nich vzduch. Rty jsou pevně sevřené, vzduch nesmí unikat nosem ani ústy. Vzduch poté vydechneme."],
 	"nafukovani_tvari.mp4": ["Střídavé nafukování tváří", "brightness head lips_open", "Nafoukneme obě tváře a zadržíme v nich vzduch. Rty jsou pevně sevřené. Vzduch poté pomalu přeléváme z jedné tváře do druhé. Vzduch nesmí unikat nosem ani ústy. Vzduch poté vydechneme."],
-	"obraceny_usmev.mp4": ["Koutky dolů", "corner open symm head neck", "Stáhneme pravý i levý koutek současně směrem dolů, snažíme se usmát „obráceně“."],
-	"ocko.mp4": ["Našpulení rtů se zuby (óčko ze rtů)", "square open teeth symm head teeth_open tongue_still", "Sevřeme a našpulíme rty směrem dopředu, rty jsou kulatě otevřené. Lehce skousnuté zuby jsou viditelné."],
-	"pusinka.mp4": ["Našpulení rtů (pusinka)", "square open symm head lips_open", "Sevřeme a našpulíme rty směrem dopředu."],
-	"usmev.mp4": ["Úsměv", "corner open width symm head", "Zavřeme ústa a roztáhneme rty do úsměvu. Snažíme se rozšířit úsměv co nejvíce do stran."],
+	"obraceny_usmev.mp4": ["Koutky dolů", "-corner -open symm head neck", "Stáhneme pravý i levý koutek současně směrem dolů, snažíme se usmát „obráceně“."],
+	"ocko.mp4": ["Našpulení rtů se zuby (óčko ze rtů)", "square open teeth symm head -teeth tongue_still", "Sevřeme a našpulíme rty směrem dopředu, rty jsou kulatě otevřené. Lehce skousnuté zuby jsou viditelné."],
+	"pusinka.mp4": ["Našpulení rtů (pusinka)", "square -open symm head lips_open", "Sevřeme a našpulíme rty směrem dopředu."],
+	"usmev.mp4": ["Úsměv", "corner -open width symm head", "Zavřeme ústa a roztáhneme rty do úsměvu. Snažíme se rozšířit úsměv co nejvíce do stran."],
 	"usmev_zuby_od_sebe.mp4": ["Úsměv se zuby od sebe", "corner open width teeth symm head", "Doširoka se usmějeme. Otevřeme ústa a ukážeme horní i spodní zuby. Zuby nejsou skousnuté, snažíme se rozšířit úsměv co nejvíce do stran a uvolníme krk."],
-	"usmev_zuby_u_sebe.mp4": ["Úsměv se zuby u sebe", "corner open width teeth symm head", "Usmějeme se tak, aby šly vidět horní i spodní zuby. Snažíme se rozšířit úsměv co nejvíce do stran, zuby držíme u sebe."],
+	"usmev_zuby_u_sebe.mp4": ["Úsměv se zuby u sebe", "corner open width -teeth symm head", "Usmějeme se tak, aby šly vidět horní i spodní zuby. Snažíme se rozšířit úsměv co nejvíce do stran, zuby držíme u sebe."],
 	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. Poté se vaše záznamy uloží jako soubor „logopedie.json“. Tento soubor nám prosím pošlete e-mailem."],
 }
 const columns = [0, 1, 2]
 const translation = {
 	"okay": "Uznatelné",
 	"corner": "Koutek úst nejde dost vysoko",
+	"-corner": "Koutek úst nejde dost dolů",
+	"corner_still": "Zapojuje se druhý koutek",
 	"open": "Ústa jsou málo otevřená",
+	"-open": "Ústa jsou otevřená",
 	"width": "Úsměv je málo široký",
-	"teeth": "Zuby nejsou vidět",
+	"teeth": "Zuby nejsou od sebe",
 	"square": "Rty netvoří kruh",
 	"tongue_up": "Jazyk jde málo nahoru",
 	"tongue_down": "Jazyk jde málo dolů",
 	"tongue_left": "Jazyk jde málo doleva (z pohledu kamery)",
 	"tongue_right": "Jazyk jde málo doprava (z pohledu kamery)",
-	"brightness": "Není vidět změna jasu ve tváři",
-	"symm": "Nesymetrické",
+	"brightness": "Tvář není dostatečně vyboulená",
+	"symm": "Není symetrické",
+	"two_symm": "Není symetrické na jednu a druhou stranu",
 	"head": "Hýbe se hlava",
 	"neck": "Zapojují se krční svaly",
 	"lips_open": "Rty nejsou v kontaktu",
 	"jaw": "Zapojuje se čelist",
 	"tongue_shape": "Jazyk není v protažení",
 	"lips_move": "Zapojují se rty",
-	"teeth_open": "Zuby nejsou v lehkém kontaktu",
+	"-teeth": "Zuby nejsou v lehkém kontaktu",
 	"tongue_still": "Není správná klidová poloha jazyka",
 }
 
@@ -117,10 +121,11 @@ function changeImage() {
 
 // callback: download was requested
 function downloadClick(ev) {
-	if (checkComplete()) {
+	if (isComplete()) {
 		const data = JSON.stringify(classification)
 		ui.download.href = `data:application/json,${data}`
 	} else {
+		window.alert("Bohužel ještě není formulář zcela vyplněný. V každém sloupci by mělo být aspoň jedno políčko zaškrtnuté.")
 		changeImage()
 	}
 }
@@ -135,7 +140,7 @@ function inputChange(ev) {
 	current[ui.comment.name] = ui.comment.value
 }
 
-// callback: check all boxes in a <tr>
+// callback: mark all boxes in a <tr> as checked
 function checkTr(ev) {
 	const tr = ev.target.parentElement
 	const inputs = Array.from(tr.querySelectorAll("input"))
@@ -164,7 +169,7 @@ function nextClick(ev) {
 }
 
 // check that each video has some user input in each column
-function checkComplete() {
+function isComplete() {
 	for (const option of ui.select.querySelectorAll("option")) {
 		const filename = option.value
 		if (filename === "epilogue") {
@@ -296,7 +301,7 @@ tr:nth-child(1) td {
 		<button id="prev" class=top>〈 Předchozí video</button>
 		<div>
 		<table><thead>
-			<tr><th colspan=4>Realizace cviku</th></tr>
+			<tr><th colspan=4>Opakování cviku</th></tr>
 			<tr><th>1.</th><th>2.</th><th>3.</th><th></th></tr>
 		</thead><tbody></tbody></table>
 		<label class=vflex>Slovní komentář:
