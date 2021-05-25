@@ -18,11 +18,15 @@ const videos = {
 	"usmev.mp4": ["Úsměv", "corner -open width symm head", "Zavřeme ústa a roztáhneme rty do úsměvu. Snažíme se rozšířit úsměv co nejvíce do stran."],
 	"usmev_zuby_od_sebe.mp4": ["Úsměv se zuby od sebe", "corner open width teeth symm head", "Doširoka se usmějeme. Otevřeme ústa a ukážeme horní i spodní zuby. Zuby nejsou skousnuté, snažíme se rozšířit úsměv co nejvíce do stran a uvolníme krk."],
 	"usmev_zuby_u_sebe.mp4": ["Úsměv se zuby u sebe", "corner open width -teeth symm head", "Usmějeme se tak, aby šly vidět horní i spodní zuby. Snažíme se rozšířit úsměv co nejvíce do stran, zuby držíme u sebe."],
-	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. Poté se vaše záznamy automaticky odešlou, abychom je mohli zpracovat. Pokud chcete, můžete si záznam i stáhnout."],
+	"prologue-1": ["Hodnocení logopedických cviků", "", "Děkujeme, že věnujete svůj čas vyplnění tohoto dotazníku. Svými odbornými znalostmi pomůžete nám, vědcům v oblasti počítačů, vytvořit  logopedickou pomůcku v podobě počítačové aplikace. // Zabere to asi 20 minut. V průběhu je možné dotazník přerušit, zavřít okno prohlížeče a později se k vyplňování vrátit. // Budete hodnotit provedení různých logopedických cviků od celkem tří lidí. Na každém videu se navíc cvik třikrát opakuje a je nutné ohodnotit každé opakování zvlášť."],
+	"prologue-2.mp4": ["Ukázka: správně provedený cvik", "corner open width -teeth symm head", "V každém sloupci je potřeba zaškrtnout aspoň jednu hodnotu. // Pokud je cvik provedený úplně správně, zaškrtneme jen “Správně”. V případě, že jsou správně všechna tři opakování, stačí kliknout na samotné slovo “Správně” a vyplní se celý řádek. // Na další ukázku přejdeme tlačítkem “Další video” anebo stiskem šipky doprava."],
+	"prologue-3.mp4": ["Ukázka: špatně provedený cvik", "corner open width -teeth symm head", "Pokud cvik není provedený správně, musíme označit všechny chyby, a to pro každé opakování. I zde je možné automaticky vyplnit celý řádek kliknutím na text. // Ve všech případech se můžete vyjádřit přesněji ve slovním komentáři."],
+	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. // Poté se vaše záznamy automaticky odešlou, abychom je mohli zpracovat. Pokud chcete, můžete si záznam i stáhnout."],
 }
+const slides = ["prologue-1", "prologue-2.mp4", "prologue-3.mp4", "content", "epilogue"]
 const columns = [0, 1, 2]
 const translation = {
-	"okay": "Uznatelné",
+	"okay": "Správně",
 	"corner": "Koutek úst nejde dost vysoko",
 	"-corner": "Koutek úst nejde dost dolů",
 	"corner_still": "Zapojuje se druhý koutek",
@@ -47,7 +51,6 @@ const translation = {
 	"-teeth": "Zuby nejsou v lehkém kontaktu",
 	"tongue_still": "Není správná klidová poloha jazyka",
 }
-const classification = {}
 const ui = {}
 const keyMap = new Map()
 
@@ -82,25 +85,30 @@ function changeImage() {
 	ui.progressbar.style.width = `${Math.round(100 * (ui.select.selectedIndex + 1) / ui.select.options.length)}%`
 	if (ui.video.dataset.src === filename) {
 		return
-	} else if (filename === "epilogue") {
-		const [title, _, description] = videos[filename]
-		ui.title.textContent = title
-		ui.description.textContent = description
-		ui.content.classList.add("hidden")
-		ui.epilogue.classList.remove("hidden")
-		ui.video.dataset.src = ""
-		return
 	}
-	ui.content.classList.remove("hidden")
-	ui.epilogue.classList.add("hidden")
-	ui.video.src = filename
 	ui.video.dataset.src = filename
-	const videoname = filename.substring(2)
+	const videoname = (filename[1] === "_") ? filename.substring(2) : filename
 	const [title, attributes, description] = videos[videoname]
 	ui.title.textContent = title
-	ui.description.textContent = description
+	for (const p of ui.header.querySelectorAll("p")) {
+		p.remove()
+	}
+	for (const textContent of description.split(" // ")) {
+		ui.header.appendChild(cel("p", {textContent}))
+	}
+	if (filename === "prologue-1") {
+		document.body.dataset.slide = "prologue"
+	} else if (filename === "epilogue") {
+		document.body.dataset.slide = "epilogue"
+		return
+	} else {
+		document.body.dataset.slide = "content"
+		ui.video.src = filename
+	}
+	const classification = JSON.parse(localStorage.classification)
 	if (classification[filename] === undefined) {
 		classification[filename] = {}
+		localStorage.classification = JSON.stringify(classification)
 	}
 	ui.attributes.innerHTML = ""
 	const current = classification[filename]
@@ -116,12 +124,13 @@ function changeImage() {
 		ui.attributes.appendChild(tr)
 		ui.comment.value = current[ui.comment.name] || ""
 	}
+	
 }
 
 // callback: validation was requested
 async function validationClick(ev) {
 	if (isComplete()) {
-		const data = JSON.stringify(classification)
+		const data = localStorage.classification
 		ui.download.href = `data:application/json,${encodeURI(data)}`
 		ui.download.classList.remove("hidden")
 		try {
@@ -142,6 +151,7 @@ async function validationClick(ev) {
 			if (response.status !== 200) {
 				throw response
 			}
+			delete localStorage.classification
 			window.alert("Díky, vaše hodnocení jsme dostali a bezpečně uložili.\nOkno prohlížeče můžete zavřít.")
 		} catch (e) {
 			window.alert("Ajaj, naše stránka udělala chybu!\nSoubor se nepodařilo automaticky uložit.\nProsím, stáhněte si zde vyplněný formulář a pošlete nám ho v příloze e-mailu.")
@@ -156,11 +166,13 @@ async function validationClick(ev) {
 // callback: any checkbox button was clicked
 function inputChange(ev) {
 	const filename = ui.select.value
+	const classification = JSON.parse(localStorage.classification)
 	const current = classification[filename]
 	for (input of ui.attributes.querySelectorAll("input")) {
 		current[input.name] = input.checked
 	}
 	current[ui.comment.name] = ui.comment.value
+	localStorage.classification = JSON.stringify(classification)
 }
 
 // callback: mark all boxes in a <tr> as checked
@@ -175,7 +187,7 @@ function checkTr(ev) {
 }
 
 function keyDown(ev) {
-	if (keyMap.has(ev.key)) {
+	if (!(ev.ctrlKey || ev.shiftKey || ev.altKey || ev.metaKey) && keyMap.has(ev.key)) {
 		ev.preventDefault()
 		keyMap.get(ev.key)()
 	}
@@ -193,6 +205,7 @@ function nextClick(ev) {
 
 // check that each video has some user input in each column
 function isComplete() {
+	const classification = JSON.parse(localStorage.classification)
 	for (const option of ui.select.querySelectorAll("option")) {
 		const filename = option.value
 		if (filename === "epilogue") {
@@ -223,6 +236,21 @@ function setKeyMap() {
 }
 
 window.onload = () => {
+	try {
+		var classification = JSON.parse(localStorage.classification)
+	} catch (e) {
+		classification = {}
+	}
+	if (typeof classification !== "object") {
+		classification = {}
+	}
+  classification["prologue-2.mp4"] = { "okay_0": true, "okay_1": true, "okay_2": true }
+  classification["prologue-3.mp4"] = {
+		"okay_1": true, "okay_2": true, "open_1": true, "width_0": true, "head_0": true, "head_1": true,
+    "comment": "Na začátku to bylo hrozné, ale od druhého opakování ten pohyb hlavy už odstranil."
+  }
+	localStorage.classification = JSON.stringify(classification)
+
 	ui.content = gel("content")
 	ui.epilogue = gel("epilogue")
 	ui.select = qel("select")
@@ -232,19 +260,21 @@ window.onload = () => {
 	ui.form = qel("form")
 	ui.attributes = qel("tbody")
 	ui.title = qel("h1")
-	ui.description = qel("p")
+	ui.header = qel("header")
 	ui.comment = qel("textarea")
 	ui.progressbar = qel(".progressbar")
-	for (const videoname of shuffle(Object.keys(videos))) {
-		if (videoname == "epilogue") {
-			continue
-		}
-		for (const i of shuffle([...subjects])) {
-			const filename = `${i}_${videoname}`
-			ui.select.append(cel("option", {textContent: `${videos[videoname][0]} - ${i}`, value: filename}))
+	for (const slide of slides) {
+		if (slide === "content") {
+			for (const videoname of shuffle(Object.keys(videos).filter(name => !slides.includes(name)))) {
+				for (const i of shuffle([...subjects])) {
+					const filename = `${i}_${videoname}`
+					ui.select.append(cel("option", {textContent: `${videos[videoname][0]} - ${i}`, value: filename}))
+				}
+			}
+		} else {
+			ui.select.append(cel("option", {textContent: videos[slide][0], value: slide}))
 		}
 	}
-	ui.select.append(cel("option", {textContent: videos["epilogue"][0], value: "epilogue"}))
 
 	ui.select.oninput = changeImage
 	ui.validation.onclick = validationClick
@@ -252,6 +282,7 @@ window.onload = () => {
 	document.onkeydown = keyDown
 	gel("prev").onclick = prevClick
 	gel("next").onclick = nextClick
+	qel("#prologue button").onclick = nextClick
 	changeImage()
 	ui.video.focus()
 }
@@ -283,6 +314,19 @@ body>* {
 	flex-flow: column;
 	justify-content: space-between;
 }
+.max-height * {
+	height: 100px;
+}
+header p {
+	font-size: 135%;
+}
+header, #prologue {
+	text-align: center;
+}
+#prologue button {
+	margin-bottom: 3em;
+	font-size: 135%;
+}
 video {
 	margin: 0 1em;
 	max-width: 100vw;
@@ -300,6 +344,9 @@ tr:nth-child(1) td {
 .clickable {
 	cursor: pointer
 }
+body:not([data-slide=prologue]) #prologue,
+body:not([data-slide=content]) #content,
+body:not([data-slide=epilogue]) #epilogue,
 .hidden {
 	display: none
 }
@@ -315,9 +362,20 @@ tr:nth-child(1) td {
 }
 </style>
 </head>
-<body>
+<body data-carousel=prologue>
+<header>
 <h1>Jazyk doleva a doprava</h1>
 <p>Špičku jazyku střídavě vysouváme vpravo a vlevo směrem k uším. Ústa jsou otevřená, nepohybujeme dolní čelistí do stran.</p>
+</header>
+<div id=prologue>
+	<button>Začínáme 〉</button>
+	<div class="hflex max-height">
+		<a href="https://assislt.utia.cas.cz"><img src="http://assislt.utia.cas.cz/images/phocadownload/assislt_32.png"></a>
+		<a href="https://zoi.utia.cas.cz"><img src="http://www.utia.cas.cz/files/ZoiLogo.png"></a>
+		<a href="https://www.utia.cas.cz"><img src="http://staff.utia.cas.cz/kolafova/web-obrazky/logoUTIA.png"></a>
+		<a href="https://www.tacr.cz/program/program-zeta/"><img src="http://assislt.utia.cas.cz/images/tacr.png"></a>
+	</div>
+</div>
 <div class=hflex id=content>
 	<video tabindex=0 controls></video>
 
@@ -341,5 +399,6 @@ tr:nth-child(1) td {
 </div>
 <select></select>
 <div class=progress-box><div class=progressbar></div></div>
+<footer><a href="https://assislt.utia.cas.cz">Assislt</a> 2021 <a href="mailto:zitova@utia.cas.cz">zitova@utia.cas.cz</a></footer>
 </body>
 </html>
