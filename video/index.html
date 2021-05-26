@@ -5,7 +5,7 @@
 	<meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-const subjects = [1, 2, 3, 4, 5]
+var subjects = [1, 2, 3, 4, 5]
 const videos = {
 	"jazyk_doleva_a_doprava.mp4": ["Střídání pohybu jazyka vpravo a vlevo", "tongue_left tongue_right head neck jaw tongue_shape lips_move", "Špičku jazyka střídavě vysouváme vpravo a vlevo směrem k uším. Ústa jsou otevřená, nepohybujeme dolní čelistí do stran"],
 	"jazyk_nahoru_a_dolu.mp4": ["Střídání pohybu jazyka nahoru a dolů", "tongue_up tongue_down symm head neck jaw tongue_shape lips_move", "Špičku jazyka střídavě vysouváme nahoru a dolů. Jazyk držíme po krátkou dobu v napětí v obou pozicích. Ústa jsou otevřená, nepomáháme si dolní čelistí."],
@@ -19,8 +19,8 @@ const videos = {
 	"usmev_zuby_od_sebe.mp4": ["Úsměv se zuby od sebe", "corner open width teeth symm head", "Doširoka se usmějeme. Otevřeme ústa a ukážeme horní i spodní zuby. Zuby nejsou skousnuté, snažíme se rozšířit úsměv co nejvíce do stran a uvolníme krk."],
 	"usmev_zuby_u_sebe.mp4": ["Úsměv se zuby u sebe", "corner open width -teeth symm head", "Usmějeme se tak, aby šly vidět horní i spodní zuby. Snažíme se rozšířit úsměv co nejvíce do stran, zuby držíme u sebe."],
 	"prologue-1": ["Hodnocení logopedických cviků", "", "Děkujeme, že věnujete svůj čas vyplnění tohoto dotazníku. Svými odbornými znalostmi pomůžete nám, vědcům v oblasti počítačů, vytvořit  logopedickou pomůcku v podobě počítačové aplikace. // Zabere to asi 20 minut. V průběhu je možné dotazník přerušit, zavřít okno prohlížeče a později se k vyplňování vrátit. // Budete hodnotit provedení různých logopedických cviků od celkem tří lidí. Na každém videu se navíc cvik třikrát opakuje a je nutné ohodnotit každé opakování zvlášť."],
-	"prologue-2.mp4": ["Ukázka: správně provedený cvik", "corner open width -teeth symm head", "V každém sloupci je potřeba zaškrtnout aspoň jednu hodnotu. // Pokud je cvik provedený úplně správně, zaškrtneme jen “Správně”. V případě, že jsou správně všechna tři opakování, stačí kliknout na samotné slovo “Správně” a vyplní se celý řádek. // Na další ukázku přejdeme tlačítkem “Další video” anebo stiskem šipky doprava."],
-	"prologue-3.mp4": ["Ukázka: špatně provedený cvik", "corner open width -teeth symm head", "Pokud cvik není provedený správně, musíme označit všechny chyby, a to pro každé opakování. I zde je možné automaticky vyplnit celý řádek kliknutím na text. // Ve všech případech se můžete vyjádřit přesněji ve slovním komentáři."],
+	"prologue-2.mp4": ["Ukázka: správně provedený cvik", "corner -open width -teeth symm head", "V každém sloupci je potřeba zaškrtnout aspoň jednu hodnotu. // Pokud je cvik provedený úplně správně, zaškrtneme jen “Správně”. V případě, že jsou správně všechna tři opakování, stačí kliknout na samotné slovo “Správně” a vyplní se celý řádek. // Na další ukázku přejdeme tlačítkem “Další video” anebo stiskem šipky doprava."],
+	"prologue-3.mp4": ["Ukázka: špatně provedený cvik", "corner -open width -teeth symm head", "Pokud cvik není provedený zcela správně, musíme označit všechny chyby, a to pro každé opakování. I zde je možné automaticky vyplnit celý řádek kliknutím na text. // Ve všech případech se můžete vyjádřit přesněji ve slovním komentáři."],
 	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. // Poté se vaše záznamy automaticky odešlou, abychom je mohli zpracovat. Pokud chcete, můžete si záznam i stáhnout."],
 }
 const slides = ["prologue-1", "prologue-2.mp4", "prologue-3.mp4", "content", "epilogue"]
@@ -208,7 +208,7 @@ function isComplete() {
 	const classification = JSON.parse(localStorage.classification)
 	for (const option of ui.select.querySelectorAll("option")) {
 		const filename = option.value
-		if (filename === "epilogue") {
+		if (slides.includes(filename)) {
 			continue
 		}
 		const current = classification[filename] || {}
@@ -246,10 +246,13 @@ window.onload = () => {
 	}
   classification["prologue-2.mp4"] = { "okay_0": true, "okay_1": true, "okay_2": true }
   classification["prologue-3.mp4"] = {
-		"okay_1": true, "okay_2": true, "open_1": true, "width_0": true, "head_0": true, "head_1": true,
-    "comment": "Na začátku to bylo hrozné, ale od druhého opakování ten pohyb hlavy už odstranil."
+		"okay_1": true, "okay_2": true, "-open_0": true, "width_0": true, "corner_0": true, "head_0": true, "head_1": true,
+    "comment": "Na začátku to bylo hrozné, ale od druhého opakování ten pohyb hlavy už skoro odstranil."
   }
 	localStorage.classification = JSON.stringify(classification)
+	if (window.location.search) {
+		subjects = subjects.filter(i => window.location.search.includes(i))
+	}
 
 	ui.content = gel("content")
 	ui.epilogue = gel("epilogue")
