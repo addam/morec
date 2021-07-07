@@ -7,21 +7,21 @@
 <script>
 var subjects = Array.from("123456789abcdefghijklmnopqrstuv")
 const videos = {
-	"jazyk_doleva_a_doprava.mp4": ["Střídání pohybu jazyka vpravo a vlevo", "tongue_left tongue_right tongue_shape lips_move two_symm jaw head neck", "Špičku jazyka střídavě vysouváme vpravo a vlevo směrem k uším. Ústa jsou otevřená, nepohybujeme dolní čelistí do stran"],
-	"jazyk_nahoru_a_dolu.mp4": ["Střídání pohybu jazyka nahoru a dolů", "tongue_up tongue_down tongue_shape lips_move chin symm head neck jaw", "Špičku jazyka střídavě vysouváme nahoru a dolů. Jazyk držíme po krátkou dobu v napětí v obou pozicích. Ústa jsou otevřená, nepomáháme si dolní čelistí."],
-	"krivy_usmev.mp4": ["Zvedání levého a pravého koutku", "corner corner_still two_symm head neck", "Zvedáme střídavě levý a pravý koutek nahoru do strany. Nepohybujeme čelistí."],
-	"nafukovani_obou_tvari.mp4": ["Nafukování tváří", "brightness lips_open symm head", "Nafoukneme obě tváře a zadržíme v nich vzduch. Rty jsou pevně sevřené, vzduch nesmí unikat nosem ani ústy. Vzduch poté vydechneme."],
-	"nafukovani_tvari.mp4": ["Střídavé nafukování tváří", "brightness lips_open two_symm head", "Nafoukneme obě tváře a zadržíme v nich vzduch. Rty jsou pevně sevřené. Vzduch poté pomalu přeléváme z jedné tváře do druhé. Vzduch nesmí unikat nosem ani ústy. Vzduch poté vydechneme."], // ?? jaw
-	"obraceny_usmev.mp4": ["Koutky dolů", "-corner -open symm jaw head neck", "Stáhneme pravý i levý koutek současně směrem dolů."], // ?? jaw
-	"ocko.mp4": ["Našpulení rtů se zuby (óčko ze rtů)", "square open -teeth tongue_still symm head", "Sevřeme a našpulíme rty směrem dopředu, rty jsou kulatě otevřené. Lehce skousnuté zuby jsou viditelné."],
+	"jazyk_doleva_a_doprava.mp4": ["Střídání pohybu jazyka vpravo a vlevo", "tongue_left tongue_right tongue_shape lips_move two_symm jaw head neck", "Špičku jazyka střídavě vysouváme vpravo a vlevo směrem k uším. Ústa jsou otevřená, dolní čelistí nepohybujeme do stran."],
+	"jazyk_nahoru_a_dolu.mp4": ["Střídání pohybu jazyka nahoru a dolů", "tongue_up tongue_down tongue_shape lips_move chin symm head neck jaw", "ŠŠpičku jazyka střídavě vysouváme nahoru a dolů. Jazyk držíme v každé pozici chvíli v napětí. Ústa jsou otevřená, dolní čelist pohybu jazyka nahoru ani dolů nepomáhá."],
+	"krivy_usmev.mp4": ["Zvedání pravého a levého koutku do stran", "corner corner_still two_symm head neck", "Střídavě vytahujeme pravý a levý ústní koutek směrem nahoru. Nepohybujeme čelistí."],
+	"nafukovani_obou_tvari.mp4": ["Nafukování tváří", "brightness lips_open symm head", "Nafoukneme obě tváře a zadržíme v nich vzduch. Rty jsou pevně sevřené. Vzduch nesmí unikat ústy ani nosem. Vzduch poté vydechneme ústy."],
+	"nafukovani_tvari.mp4": ["Střídavé nafukování tváří", "brightness lips_open two_symm head", "Nafoukneme obě tváře a zadržíme v nich vzduch. Rty jsou pevně sevřené. Vzduch postupně pomalu přeléváme z jedné tváře do druhé. Vzduch nesmí unikat ústy ani nosem."], // ?? jaw
+	"obraceny_usmev.mp4": ["Koutky dolů", "-corner -open symm jaw head neck", "Stáhneme pravý i levý koutek úst současně směrem dolů."], // ?? jaw
+	"ocko.mp4": ["Našpulení rtů se zuby (óčko ze rtů)", "square open -teeth tongue_still symm head", "Našpulíme rty směrem dopředu, rty jsou kulatě otevřené. Lehce skousnuté zuby jsou viditelné."],
 	"pusinka.mp4": ["Našpulení rtů (pusinka)", "square lips_open symm head", "Sevřeme a našpulíme rty směrem dopředu."], // ?? neck
 	"usmev.mp4": ["Úsměv", "corner -open width symm head", "Zavřeme ústa a roztáhneme rty do úsměvu. Snažíme se rozšířit úsměv co nejvíce do stran."],
-	"usmev_zuby_od_sebe.mp4": ["Úsměv se zuby od sebe", "corner open width teeth symm head", "Doširoka se usmějeme. Otevřeme ústa a ukážeme horní i dolní zuby. Zuby nejsou skousnuté, snažíme se rozšířit úsměv co nejvíce do stran a uvolníme krk."],
-	"usmev_zuby_u_sebe.mp4": ["Úsměv se zuby u sebe", "corner open width -teeth symm head", "Usmějeme se tak, aby šly vidět horní i dolní zuby. Snažíme se rozšířit úsměv co nejvíce do stran, zuby držíme u sebe."], // ?? neck
+	"usmev_zuby_od_sebe.mp4": ["Úsměv se zuby od sebe", "corner open width teeth symm head", "Doširoka se usmějeme. Otevřeme ústa a ukážeme horní i dolní zuby. Rty roztahujeme do šířky, uvolníme krk."],
+	"usmev_zuby_u_sebe.mp4": ["Úsměv se zuby u sebe", "corner open width -teeth symm head", "Usmějeme se a ukážeme horní i dolní zuby. Ústa jsou v širokém úsměvu, zuby skousnuté."], // ?? neck
 	"prologue-1": ["Hodnocení logopedických cviků", "", "Děkujeme, že věnujete svůj čas vyplnění tohoto dotazníku. Svými odbornými znalostmi pomůžete nám, vědcům v oblasti počítačů, vytvořit  logopedickou pomůcku v podobě počítačové aplikace. // Zabere to asi 20 minut. V průběhu je možné dotazník přerušit, zavřít okno prohlížeče a později se k vyplňování vrátit. // Budete hodnotit provedení různých logopedických cviků od celkem tří lidí. Na každém videu se navíc cvik třikrát opakuje a je nutné ohodnotit každé opakování zvlášť."],
 	"prologue-2.mp4": ["Ukázka: správně provedený cvik Uzavřený úsměv", "corner -open width symm head", "V každém sloupci je potřeba zaškrtnout aspoň jednu hodnotu. // Pokud je cvik provedený úplně správně, zaškrtneme jen “Správně”. V případě, že jsou správně všechna tři opakování, stačí kliknout na samotné slovo “Správně” a vyplní se celý řádek. // Na další ukázku přejdeme tlačítkem “Další video” anebo stiskem šipky doprava."],
 	"prologue-3.mp4": ["Ukázka: špatně provedený cvik Uzavřený úsměv", "corner -open width symm head", "Pokud cvik není provedený zcela správně, musíme označit všechny chyby, a to pro každé opakování. I zde je možné automaticky vyplnit celý řádek kliknutím na text. // Ve všech případech se můžete vyjádřit přesněji ve slovním komentáři."],
-	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. // Poté se vaše záznamy automaticky odešlou, abychom je mohli zpracovat. Pokud chcete, můžete si záznam i stáhnout."],
+	"epilogue": ["Závěr", "", "Kliknutím na tlačítko zkontrolujete, že je vše vyplněné. // Poté se vaše záznamy automaticky odešlou, abychom je mohli zpracovat. Pokud chcete, můžete si hotové záznamy i stáhnout."],
 }
 const slides = ["prologue-1", "prologue-2.mp4", "prologue-3.mp4", "content", "epilogue"]
 const columns = [0, 1, 2]
