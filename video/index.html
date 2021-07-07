@@ -171,7 +171,7 @@ function inputChange(ev) {
 	const classification = JSON.parse(localStorage.classification)
 	const current = classification[filename]
 	for (input of ui.attributes.querySelectorAll("input")) {
-		current[input.name] = input.checked
+		current[input.name] = input.checked ? 1 : 0
 	}
 	current[ui.comment.name] = ui.comment.value
 	localStorage.classification = JSON.stringify(classification)
@@ -247,15 +247,15 @@ window.onload = () => {
 	try {
 		var classification = JSON.parse(localStorage.classification)
 	} catch (e) {
-		classification = {}
+		classification = null
 	}
-	if (typeof classification !== "object") {
-		classification = {}
+	if (typeof classification !== "object" || classification.subjects != window.location.search) {
+		classification = { subjects: window.location.search }
 	}
-  classification["prologue-2.mp4"] = { "okay_0": true, "okay_1": true, "okay_2": true }
+  classification["prologue-2.mp4"] = { "okay_0": 1, "okay_1": 1, "okay_2": 1 }
   classification["prologue-3.mp4"] = {
-		"-open_0": true, "width_0": true, "corner_0": true, "symm_0": true, "head_0": true, 
-		"okay_1": true, "head_1": true, "okay_2": true,
+		"-open_0": 1, "width_0": 1, "corner_0": 1, "symm_0": 1, "head_0": 1, 
+		"okay_1": 1, "head_1": 1, "okay_2": 1,
     "comment": "První pokus proveden chybně, při druhém opakování mírný pohyb hlavy dopředu, třetí opakování již v pořádku."
   }
 	localStorage.classification = JSON.stringify(classification)
