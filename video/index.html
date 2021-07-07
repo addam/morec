@@ -87,6 +87,7 @@ function changeImage() {
 	if (ui.video.dataset.src === filename) {
 		return
 	}
+	ui.contentSlide.dataset.slide = "video-ok"
 	ui.video.dataset.src = filename
 	const videoname = (filename[1] === "_") ? filename.substring(2) : filename
 	const [title, attributes, description] = videos[videoname]
@@ -204,6 +205,10 @@ function nextClick(ev) {
 	changeImage()
 }
 
+function videoError(ev) {
+	ui.contentSlide.dataset.slide = "video-error"
+}
+
 // check that each video has some user input in each column
 function isComplete() {
 	const classification = JSON.parse(localStorage.classification)
@@ -257,6 +262,7 @@ window.onload = () => {
 	}
 
 	ui.content = gel("content")
+	ui.contentSlide = gel("content-slide")
 	ui.epilogue = gel("epilogue")
 	ui.select = qel("select")
 	ui.video = qel("video")
@@ -283,6 +289,7 @@ window.onload = () => {
 
 	ui.select.oninput = changeImage
 	ui.validation.onclick = validationClick
+	ui.video.onerror = videoError
 	setKeyMap()
 	document.onkeydown = keyDown
 	gel("prev").onclick = prevClick
@@ -352,6 +359,8 @@ tr:nth-child(1) td {
 body:not([data-slide=prologue]) #prologue,
 body:not([data-slide=content]) #content,
 body:not([data-slide=epilogue]) #epilogue,
+div:not([data-slide=video-ok]) > #video-ok,
+div:not([data-slide=video-error]) > #video-error,
 .hidden {
 	display: none
 }
@@ -384,9 +393,9 @@ body:not([data-slide=epilogue]) #epilogue,
 <div class=hflex id=content>
 	<video tabindex=0 controls></video>
 
-	<div class=vflex>
+	<div class=vflex id=content-slide data-slide=video-ok>
 		<button id="prev" class=top>〈 Předchozí video</button>
-		<div>
+		<div id=video-ok>
 		<table><thead>
 			<tr><th colspan=4>Opakování cviku</th></tr>
 			<tr><th>1.</th><th>2.</th><th>3.</th><th></th></tr>
@@ -394,6 +403,9 @@ body:not([data-slide=epilogue]) #epilogue,
 		<label class=vflex>Slovní komentář:
 		<textarea name="comment" cols=30 rows=3 oninput="inputChange(event)"></textarea>
 		</label>
+		</div>
+		<div id=video-error>
+			<p>Video pro tento cvik není dostupné. Přejděte na další video.</p>
 		</div>
 		<button id="next" class=bottom>Další video 〉</button>
 	</div>
