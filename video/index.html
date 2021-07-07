@@ -207,6 +207,8 @@ function nextClick(ev) {
 
 function videoError(ev) {
 	ui.contentSlide.dataset.slide = "video-error"
+	ui.comment.value = "video-error"
+	inputChange()
 }
 
 // check that each video has some user input in each column
