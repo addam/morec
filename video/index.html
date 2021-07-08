@@ -249,7 +249,7 @@ window.onload = () => {
 	} catch (e) {
 		classification = null
 	}
-	if (typeof classification !== "object" || classification.subjects != window.location.search) {
+	if (!classification || typeof classification !== "object" || classification.subjects != window.location.search) {
 		classification = { subjects: window.location.search }
 	}
   classification["prologue-2.mp4"] = { "okay_0": 1, "okay_1": 1, "okay_2": 1 }
