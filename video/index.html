@@ -136,19 +136,14 @@ async function validationClick(ev) {
 		ui.download.href = `data:application/json,${encodeURI(data)}`
 		ui.download.classList.remove("hidden")
 		try {
-			var formData = new FormData();
-			formData.append("expires", "2021-12-31")
-			formData.append("maxDownloads", "1")
-			formData.append("autoDelete", "true")
-			const file = new File([data], "logopedie.json", {type : "application/json"})
-			formData.append("file", file)
-			const response = await fetch("https://file.io/", {
+			const response = await fetch("http://adam.dominec.eu:3001", {
+			//const response = await fetch("http://localhost:3000", {
 			  method: "POST",
 			  headers: {
 					"Accept": "application/json",
-					"Authorization": "Basic SlJYMzNEQi5LNFY0VjRGLVIzQU1HS0YtSEM4QUtENy1TRzI5RVk2Og==",
+					"Content-Type": "application/json",
 				},
-			  body: formData
+			  body: data
 			});
 			if (response.status !== 200) {
 				throw response
