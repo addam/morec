@@ -1,0 +1,20 @@
+{
+  "name": "filestorage",
+  "version": "1.0.0",
+  "description": "store json files and present them as spreadsheets",
+  "main": "app.js",
+  "author": "Adam Dominec",
+  "license": "WTFPL",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "excel4node": "^1.7.2",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
