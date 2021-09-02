@@ -52,6 +52,28 @@ const translation = {
 	"tongue_still": "Není správná klidová poloha jazyka",
 	"chin": "Zapojuje se bradový sval",
 }
+const missingFiles = new Set([
+	"5_krivy_usmev.mp4",
+	"8_krivy_usmev.mp4",
+	"8_nafukovani_obou_tvari.mp4",
+	"8_obraceny_usmev.mp4",
+	"9_nafukovani_obou_tvari.mp4",
+	"a_jazyk_doleva_a_doprava.mp4",
+	"a_nafukovani_obou_tvari.mp4",
+	"a_pusinka.mp4",
+	"e_jazyk_doleva_a_doprava.mp4",
+	"e_jazyk_nahoru_a_dolu.mp4",
+	"e_nafukovani_obou_tvari.mp4",
+	"e_nafukovani_tvari.mp4",
+	"i_krivy_usmev.mp4",
+	"i_nafukovani_tvari.mp4",
+	"n_krivy_usmev.mp4",
+	"n_nafukovani_obou_tvari.mp4",
+	"n_nafukovani_tvari.mp4",
+	"n_usmev_zuby_od_sebe.mp4",
+	"o_usmev_zuby_u_sebe.mp4",
+	"t_ocko.mp4",
+])
 const ui = {}
 const keyMap = new Map()
 
@@ -96,7 +118,7 @@ function changeImage() {
 		p.remove()
 	}
 	for (const textContent of description.split(" // ")) {
-		ui.header.appendChild(cel("p", {textContent}))
+		ui.header.appendChild(cel("p", { textContent }))
 	}
 	if (filename === "prologue-1") {
 		document.body.dataset.slide = "prologue"
@@ -126,7 +148,6 @@ function changeImage() {
 		ui.attributes.appendChild(tr)
 		ui.comment.value = current[ui.comment.name] || ""
 	}
-	
 }
 
 // callback: validation was requested
@@ -201,8 +222,14 @@ function nextClick(ev) {
 }
 
 function videoError(ev) {
-	ui.contentSlide.dataset.slide = "video-error"
-	ui.comment.value = "video-error"
+	if (missingFiles.has(ui.select.value)) {
+		ui.contentSlide.dataset.slide = "video-missing"
+		ui.video.src = ""
+		ui.comment.value = "video-missing"
+	} else {
+		ui.contentSlide.dataset.slide = "video-error"
+		ui.comment.value = "video-error"
+	}
 	inputChange()
 }
 
@@ -340,6 +367,9 @@ video {
 	margin: 0 1em;
 	max-width: 100vw;
 }
+video[src=""] {
+	visibility: hidden;
+}
 table {
 	border-collapse: collapse;
 	width: 100%;
@@ -358,6 +388,7 @@ body:not([data-slide=content]) #content,
 body:not([data-slide=epilogue]) #epilogue,
 div:not([data-slide=video-ok]) > #video-ok,
 div:not([data-slide=video-error]) > #video-error,
+div:not([data-slide=video-missing]) > #video-missing,
 .hidden {
 	display: none
 }
@@ -401,8 +432,12 @@ div:not([data-slide=video-error]) > #video-error,
 		<textarea name="comment" cols=30 rows=3 oninput="inputChange(event)"></textarea>
 		</label>
 		</div>
+		<div id=video-missing>
+			<p>Záznam tohoto cvičení nemáme dostupný, není co hodnotit.</p>
+			<p>Přejděte, prosím, na další video.</p>
+		</div>
 		<div id=video-error>
-			<p>Video pro tento cvik není dostupné. Přejděte na další video.</p>
+			<p>Video se nepodařilo načíst. Můžete přejít na hodnocení dalšího cviku.</p>
 		</div>
 		<button id="next" class=bottom>Další video 〉</button>
 	</div>
