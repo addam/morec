@@ -122,6 +122,19 @@ app.get("/combined.xlsx", async (req, res) => {
   }
 });
 
+app.get("/files.html", async (req, res) => {
+  try {
+    const result = []
+    for await (const name of await fsp.readdir(datadir)) {
+      result.push(name)
+    }
+    res.status(200).send(result.join("<br>"))
+  } catch (err) {
+    console.error(err)
+    invalidRequest(res, err)
+  }
+});
+
 app.post("/", async (req, res) => {
   try {
     console.log(new Date(), req.ip, req.body.subjects)
