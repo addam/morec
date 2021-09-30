@@ -18,6 +18,7 @@ function invalidRequest(res, err) {
 const translation = {
   "exercise": "Cvik",
   "repeat": "Opakování",
+  "filename": "Soubor",
   "comment": "Slovní komentář",
   "okay": "Správně",
   "corner": "Koutek úst nejde dost vysoko",
@@ -46,60 +47,97 @@ const translation = {
   "chin": "Zapojuje se bradový sval",
 }
 
-function spreadsheet() {
-  // Create a new instance of a Workbook class
-  var wb = new xl.Workbook();
+function getDefault(map, key, type=Map) {
+  return map.get(key) || (map.set(key, new type()).get(key))
+}
 
-  wb.worksheets = new Map()
-  wb.sheet = function(name) {
-    name = String(name)
-    let ws = wb.worksheets.get(name)
-    if (!ws) {
-      ws = wb.addWorksheet(name)
-      wb.worksheets.set(name, ws)
-      ws.lines = 1
-      ws.header = ["exercise", "repeat", "comment"]
-      ws.addLine = function(name, data) {
-        const regex = /(.*)_(.)/
-        ws.cell(++ws.lines, 1).string(name)
-        for (let i=0; i<3; i++) {
-          ws.cell(ws.lines + i, 2).number(i + 1)
-        }
-        for (const entry in data) {
-          try {
-            const [_, aspect, repeat] = entry.match(regex)
-            let column = ws.header.indexOf(aspect) + 1
-            if (!column) {
-              column = ws.header.push(aspect)
-              ws.cell(1, column).string(translation[aspect])
-            }
-            ws.cell(ws.lines + Number(repeat), column).number(Number(data[entry]))
-          } catch (err) {
-            let column = ws.header.indexOf(entry) + 1
-	    if (column > 0) {
-	      ws.cell(ws.lines, column).string(String(data[entry]))
-	    }
-          }
-        }
-        ws.lines += 2
-      }
-    }
-    return ws
+function columnName(index) {
+  if (index > 26) {
+    return columnName(1 + Math.floor((index - 1) / 26)) + columnName((index - 1) % 26 + 1)
+  }
+  return String.fromCharCode(65 + index)
+}
+
+class Dataset {
+  constructor() {
+    // data[person][exercise || "header"][repeat][fileNo] = {aspect: value, ...}
+    this.data = new Map()
   }
 
-  wb.add = function(data) {
-    const regex = /(.)_(.*)\.mp4/
-    for (const filename in data) {
+  add(dataset, id) {
+    for (const filename in dataset) {
       if (filename === "subjects" || filename.startsWith("prologue-")) {
         continue
       }
-      const [_, person, exercise] = filename.match(regex)
-      const ws = wb.sheet(person)
-      ws.addLine(exercise, data[filename])
+      const [_, person, exercise] = filename.match(/(.)_(.*)\.mp4/)
+      const personData = getDefault(this.data, person)
+      const exerciseData = getDefault(personData, exercise)
+      const header = getDefault(personData, "header", Set)
+      for (const aspectName in dataset[filename]) {
+        const [_, aspect, repeat] = aspectName.match(/(.*)_(.)/) || [null, aspectName, 0]
+        const repeatData = getDefault(exerciseData, Number(repeat))
+        const rowData = getDefault(repeatData, id)
+        rowData.set(aspect, dataset[filename][aspectName])
+        header.add(aspect)
+      }
     }
   }
 
-  return wb
+  write(filename, res) {
+    const wb = new xl.Workbook()
+    const markStyle = wb.createStyle({
+      font: {
+        bold: true,
+        color: "FF0000",
+      },
+    });
+
+    this.data.forEach((personData, person) => {
+      const ws = wb.addWorksheet(person)
+      const header = [...[null, "exercise", "repeat", "filename", "comment"], ...personData.get("header")]
+      header.forEach((name, i) => {
+        if (i) {
+          ws.cell(1, i).string(translation[name])
+        }
+      })
+      let row = 2
+      personData.forEach((exerciseData, exercise) => {
+        if (exercise === "header") {
+          return
+        }
+        exerciseData.forEach((repeatData, repeat) => {
+          repeatData.forEach((rowData, filename) => {
+            ws.cell(row, header.indexOf("exercise")).string(exercise)
+            ws.cell(row, header.indexOf("repeat")).number(repeat)
+            ws.cell(row, header.indexOf("filename")).string(filename)
+            rowData.forEach((value, aspect) => {
+              const column = header.indexOf(aspect)
+              if (typeof value === "string") {
+                ws.cell(row, column).string(value)
+              } else {
+                ws.cell(row, column).number(Number(value))
+              }
+            })
+            row += 1
+          })
+        })
+      })
+      ws.addConditionalFormattingRule(`E2:E${row}`, {
+        type: "expression",
+        priority: 1,
+        formula: "1-E2",
+        style: markStyle,
+      })
+      const lastColumn = columnName(header.length)
+      ws.addConditionalFormattingRule(`F2:${lastColumn}${row}`, {
+        type: "expression",
+        priority: 1,
+        formula: "F2",
+        style: markStyle,
+      });
+    })
+    return wb.write(filename, res)
+  }
 }
 
 app.get("/", (req, res) => {
@@ -110,10 +148,10 @@ const datadir = "./data"
 
 app.get("/combined.xlsx", async (req, res) => {
   try {
-    const wb = spreadsheet()
+    const wb = new Dataset()
     for await (const name of await fsp.readdir(datadir)) {
       const data = JSON.parse(await fsp.readFile(`${datadir}/${name}`))
-      wb.add(data)
+      wb.add(data, name)
     }
     wb.write("combined.xlsx", res)
   } catch (err) {
