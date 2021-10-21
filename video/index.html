@@ -127,7 +127,9 @@ function changeImage() {
 		return
 	} else {
 		document.body.dataset.slide = "content"
-		ui.video.src = `v/${filename}`
+		const connectionType = (window.navigator.connection || {}).effectiveType || "4g" 
+		const directory = connectionType.endsWith("2g") ? "v" : "hv"
+		ui.video.src = `${directory}/${filename}`
 	}
 	const classification = JSON.parse(localStorage.classification)
 	if (classification[filename] === undefined) {
@@ -233,6 +235,11 @@ function videoError(ev) {
 	inputChange()
 }
 
+function videoCanPlay(ev) {
+	// canplay event is fired when the user agent can play the media, but estimates the loading is too slow to start yet
+	console.log("canplay!")
+}
+
 // check that each video has some user input in each column
 function isComplete() {
 	const classification = JSON.parse(localStorage.classification)
@@ -314,6 +321,7 @@ window.onload = () => {
 	ui.select.oninput = changeImage
 	ui.validation.onclick = validationClick
 	ui.video.onerror = videoError
+	ui.video.canplay = videoCanPlay
 	setKeyMap()
 	document.onkeydown = keyDown
 	gel("prev").onclick = prevClick
