@@ -16,9 +16,10 @@ function invalidRequest(res, err) {
 }
 
 const translation = {
+  "subject": "Subjekt",
   "exercise": "Cvik",
   "repeat": "Opakování",
-  "filename": "Soubor",
+  "filename": "Odevzdaný soubor",
   "comment": "Slovní komentář",
   "okay": "Správně",
   "corner": "Koutek úst nejde dost vysoko",
@@ -51,6 +52,11 @@ function getDefault(map, key, type=Map) {
   return map.get(key) || (map.set(key, new type()).get(key))
 }
 
+function forEachSorted(map, callback) {
+  const array = Array.from(map.entries()).sort(([ak, av], [bk, bv]) => (ak < bk) ? -1 : (bk < ak) ? 1 : 0)
+  array.forEach(([k, v]) => callback(v, k))
+}
+
 function columnName(index) {
   if (index > 26) {
     return columnName(1 + Math.floor((index - 1) / 26)) + columnName((index - 1) % 26 + 1)
@@ -60,8 +66,10 @@ function columnName(index) {
 
 class Dataset {
   constructor() {
-    // data[person][exercise || "header"][repeat][fileNo] = {aspect: value, ...}
+    // data[person][exercise][repeat][fileNo] = {aspect: value, ...}
     this.data = new Map()
+    this.header = new Set()
+    this.fixedHeader = [null, "exercise", "repeat", "filename", "comment"]
   }
 
   add(dataset, id) {
@@ -72,13 +80,12 @@ class Dataset {
       const [_, person, exercise] = filename.match(/(.)_(.*)\.mp4/)
       const personData = getDefault(this.data, person)
       const exerciseData = getDefault(personData, exercise)
-      const header = getDefault(personData, "header", Set)
       for (const aspectName in dataset[filename]) {
         const [_, aspect, repeat] = aspectName.match(/(.*)_(.)/) || [null, aspectName, 0]
         const repeatData = getDefault(exerciseData, Number(repeat))
         const rowData = getDefault(repeatData, id)
         rowData.set(aspect, dataset[filename][aspectName])
-        header.add(aspect)
+        this.header.add(aspect)
       }
     }
   }
@@ -92,25 +99,22 @@ class Dataset {
       },
     });
 
-    this.data.forEach((personData, person) => {
+    forEachSorted(this.data, (personData, person) => {
       const ws = wb.addWorksheet(person)
-      const header = [...[null, "exercise", "repeat", "filename", "comment"], ...personData.get("header")]
+      const header = [...this.fixedHeader, ...this.header]
       header.forEach((name, i) => {
         if (i) {
           ws.cell(1, i).string(translation[name])
         }
       })
       let row = 2
-      personData.forEach((exerciseData, exercise) => {
-        if (exercise === "header") {
-          return
-        }
+      forEachSorted(personData, (exerciseData, exercise) => {
         exerciseData.forEach((repeatData, repeat) => {
           repeatData.forEach((rowData, filename) => {
-            ws.cell(row, header.indexOf("exercise")).string(exercise)
+            ws.cell(row, 1).string(exercise)
             ws.cell(row, header.indexOf("repeat")).number(repeat)
             ws.cell(row, header.indexOf("filename")).string(filename)
-            rowData.forEach((value, aspect) => {
+            forEachSorted(rowData, (value, aspect) => {
               const column = header.indexOf(aspect)
               if (typeof value === "string") {
                 ws.cell(row, column).string(value)
@@ -138,6 +142,18 @@ class Dataset {
     })
     return wb.write(filename, res)
   }
+
+  flipExercisePerson() {
+    const orig = this.data
+    this.data = new Map()
+    orig.forEach((personOrig, person) => {
+      personOrig.forEach((exerciseOrig, exercise) => {
+        const exerciseData = getDefault(this.data, exercise)
+        exerciseData.set(person, exerciseOrig)
+      })
+    })
+    this.fixedHeader[1] = "subject"
+  }
 }
 
 app.get("/", (req, res) => {
@@ -146,14 +162,34 @@ app.get("/", (req, res) => {
 
 const datadir = "./data"
 
-app.get("/combined.xlsx", async (req, res) => {
-  try {
-    const wb = new Dataset()
-    for await (const name of await fsp.readdir(datadir)) {
+async function fillDataset() {
+  const wb = new Dataset()
+  for await (const name of await fsp.readdir(datadir)) {
+    try {
       const data = JSON.parse(await fsp.readFile(`${datadir}/${name}`))
       wb.add(data, name)
+    } catch (e) {
+      console.warn(`Failed to read file ${datadir}/${name}`)
     }
+  }
+  return wb;
+}
+
+app.get("/combined.xlsx", async (req, res) => {
+  try {
+    const wb = await fillDataset()
     wb.write("combined.xlsx", res)
+  } catch (err) {
+    console.error(err)
+    invalidRequest(res, err)
+  }
+});
+
+app.get("/exercises.xlsx", async (req, res) => {
+  try {
+    const wb = await fillDataset()
+    wb.flipExercisePerson()
+    wb.write("exercises.xlsx", res)
   } catch (err) {
     console.error(err)
     invalidRequest(res, err)
